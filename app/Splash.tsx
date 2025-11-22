@@ -20,7 +20,7 @@ export default function Splash() {
 
   // Προσομοίωση φόρτωσης assets/API με σταδιακό progress
   useEffect(() => {
-    const minTime = 1000; // minimum 3 δευτερόλεπτα
+    const minTime = 1000; // minimum 1 δευτερόλεπτο
     const start = Date.now();
 
     let currentProgress = 0;

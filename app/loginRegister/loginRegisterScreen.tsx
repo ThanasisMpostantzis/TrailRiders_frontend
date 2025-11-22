@@ -32,7 +32,7 @@ export default function LoginRegisterScreen() {
         {/* Continue with Google */}
         <TouchableOpacity style={styles.googleBtn} onPress={() => console.log('Google Sign In')}>
           <Image 
-            source={require('@/images/google-logo.png')} // Φρόντισε να έχεις το logo στο project
+            source={require('@/images/google-logo.png')} 
             style={styles.googleLogo} 
           />
           <Text style={styles.googleText}>Continue with Google</Text>
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   logo: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
   appName: { fontSize: 28, fontWeight: 'bold', color: '#000000ff' },
   slogan: { fontSize: 13, color: '#666', textAlign: 'center', marginTop: 8 },
-  buttons: { width: '100%', marginBottom: "30%" },
+  buttons: { width: '100%', marginBottom: "25%" },
 
   loginBtn: {
     backgroundColor: '#1DA1FA',
