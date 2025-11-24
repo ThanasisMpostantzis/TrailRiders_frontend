@@ -31,6 +31,14 @@ export default function RootLayout() {
       <Stack.Screen name="loginRegister/register" />
       <Stack.Screen name="loginRegister/forgotPassword"/>
       <Stack.Screen name="(tabs)"/>
+      <Stack.Screen 
+        name="rideDetails/[id]" 
+        options={{ 
+          headerShown: false,
+          presentation: 'card',
+          headerTitle: 'Details' 
+        }} 
+      />
       <StatusBar style='auto'/>
     </Stack>
   );

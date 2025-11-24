@@ -1,0 +1,120 @@
+import { getRideById, Ride } from "@/api/ridesApi"; // Το API σου
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+
+export default function RideDetailsScreen() {
+  const { id } = useLocalSearchParams(); // 1. Πιάνουμε το ID από το URL
+  const router = useRouter();
+  
+  const [ride, setRide] = useState<Ride | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 2. Μόλις έχουμε ID, καλούμε το Backend
+    if (id) {
+      fetchRideData(id.toString());
+    }
+  }, [id]);
+
+  const fetchRideData = async (rideId: string) => {
+    try {
+      const data = await getRideById(rideId);
+      setRide(data);
+    } catch (error) {
+      console.log("Error fetching details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#003366" />
+      </View>
+    );
+  }
+
+  if (!ride) {
+    return (
+      <View style={styles.center}>
+        <Text>Ride not found!</Text>
+      </View>
+    );
+  }
+
+  // 3. Εμφανίζουμε τα δεδομένα του συγκεκριμένου Ride
+  return (
+    <ScrollView style={styles.container}>
+      {/* Header Image */}
+      <Image 
+        source={ride.image ? { uri: ride.image } : require('@/images/logo.webp')} 
+        style={styles.image} 
+      />
+      
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color="white" />
+      </TouchableOpacity>
+
+      <View style={styles.content}>
+        <Text style={styles.title}>{ride.title}</Text>
+        
+        <View style={styles.infoRow}>
+            <Ionicons name="person" size={18} color="#555"/>
+            <Text style={styles.infoText}>Organizer: {ride.organizer}</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+            <Ionicons name="calendar" size={18} color="#555"/>
+            <Text style={styles.infoText}>Date: {ride.date}</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+            <Ionicons name="location" size={18} color="#555"/>
+            <Text style={styles.infoText}>Route: {ride.startLocation} ➝ {ride.finishLocation}</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Description</Text>
+        <Text style={styles.description}>{ride.description}</Text>
+
+        {/* Εδώ εμφανίζουμε τα Stops αν υπάρχουν */}
+        {ride.stops && ride.stops.length > 0 && (
+            <View>
+                <Text style={styles.sectionTitle}>Stops</Text>
+                {ride.stops.map((stop, index) => (
+                    <Text key={index} style={styles.stopText}>• {stop}</Text>
+                ))}
+            </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  image: { width: "100%", height: 250, resizeMode: "cover" },
+  backButton: {
+    position: "absolute", top: 40, left: 20, 
+    backgroundColor: "rgba(0,0,0,0.5)", padding: 8, borderRadius: 20 
+  },
+  content: { padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", color: "#003366", marginBottom: 10 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  infoText: { marginLeft: 10, fontSize: 16, color: "#444" },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 5 },
+  description: { fontSize: 15, lineHeight: 22, color: "#666" },
+  stopText: { fontSize: 15, marginLeft: 10, marginBottom: 2, color: "#444" }
+});
