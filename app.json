@@ -9,26 +9,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "splash": {
+        "image": "./images/logo.webp",
+        "resizeMode": "contain",
+        "backgroundColor": "#DCDCDC"
+      }
     },
     "splash": {
       "image": "./images/logo.webp",
       "resizeMode": "contain",
       "backgroundColor": "#DCDCDC"
-    },
-    "android": {
-      "splash": {
-        "image": "./images/logo.webp",
-        "resizeMode": "contain",
-        "backgroundColor": "#DCDCDC"
-      }
-    },
-    "ios": {
-      "splash": {
-        "image": "./images/logo.webp",
-        "resizeMode": "contain",
-        "backgroundColor": "#DCDCDC"
-      }
     },
     "android": {
       "adaptiveIcon": {
@@ -57,7 +47,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

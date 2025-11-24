@@ -1,26 +1,72 @@
+import { Ionicons } from '@expo/vector-icons'; // Import για το εικονίδιο
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Easing } from 'react-native-reanimated';
+import { forgotPasswordApi } from "../../api/authApi";
 
 export default function ForgotPassword() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [flag, setFlag] = useState(false); // Flag για την επιτυχία
 
-  const handleReset = () => {
-    if (!email) return alert('Please enter your email');
-    alert(`Password reset link sent to ${email}`);
+
+  const handleForgot = async () => {
+    if (!email) {
+      return Alert.alert('Error', 'Please enter your email');
+    }
+
+    try {
+      const data = await forgotPasswordApi(email);
+      console.log("Email sent:", data);
+      
+      setFlag(true);
+
+      setTimeout(() => {
+        router.replace('/loginRegister/login');
+      }, 2500);
+
+    } catch (err: any) {
+      console.log("Forgot error:", err);
+
+      //DONT FORGET TO ADD CUSTOM ALLERT BOX
+      Alert.alert("Error", err.toString() || "Something went wrong");
+    }
   };
 
+  // Success Screen
+  if (flag) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+         <MotiView
+          from={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', damping: 15 }}
+        >
+          <Ionicons name="mail-open" size={100} color="#1DA1FA" />
+        </MotiView>
+        <Text style={{ marginTop: 20, fontSize: 20, fontWeight: 'bold', color: '#1DA1FA' }}>
+          Email Sent!
+        </Text>
+        <Text style={{ marginTop: 10, color: '#666', textAlign: 'center', paddingHorizontal: 40 }}>
+          Please check your inbox for instructions to reset your password.
+        </Text>
+      </View>
+    );
+  }
+
+  // Κανονική Οθόνη
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -48,9 +94,10 @@ export default function ForgotPassword() {
             value={email}
             onChangeText={setEmail}
             placeholderTextColor="#999"
+            autoCapitalize="none" // Σημαντικό για email
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleReset}>
+          <TouchableOpacity style={styles.button} onPress={handleForgot}>
             <Text style={styles.buttonText}>Send Reset Link</Text>
           </TouchableOpacity>
 
@@ -116,7 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#1DA1FA', // Άλλαξα το χρώμα για να ταιριάζει με τα άλλα
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -136,12 +183,12 @@ const styles = StyleSheet.create({
   backArrow: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2563eb',
+    color: '#1DA1FA', // Και εδώ
     marginRight: 8,
     marginBottom: '2%'
   },
   backText: {
-    color: '#2563eb',
+    color: '#1DA1FA', // Και εδώ
     fontSize: 16,
     fontWeight: '600',
   },

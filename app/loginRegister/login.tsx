@@ -1,14 +1,44 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { loginApi } from "../../api/authApi";
 
 export default function Login() {
   const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [flag, setFlag] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
-    router.replace('/(tabs)/home');
+    try {
+      const data = await loginApi(userName.trim(), password.trim());
+      console.log("Logged in:", data);
+
+      setFlag(true);
+
+      setTimeout(() => {
+        router.replace('/(tabs)/home');
+      }, 1000);
+
+    } catch (err) {
+      console.log("Login error:", err);
+      
+      //DONT FORGET TO ADD CUSTOM ALLERT BOX
+      Alert.alert("Login failed. Please check your credentials.");
+    }
+  };
+
+  if (flag) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+        <Ionicons name="checkmark-circle" size={100} color="#fa881dff" />
+        <Text style={{ marginTop: 20, fontSize: 20, fontWeight: 'bold', color: '#1DA1FA' }}>
+          Login Successful!
+        </Text>
+      </View>
+    );
   }
 
   return (
@@ -17,11 +47,11 @@ export default function Login() {
       <Text style={styles.subtitle}>Login to continue</Text>
 
       <TextInput
-        placeholder="Email"
+        placeholder="Username"
         placeholderTextColor="#aaa"
         style={styles.input}
-        value={email}
-        onChangeText={setEmail}
+        value={userName}
+        onChangeText={setUserName}
       />
       <TextInput
         placeholder="Password"
@@ -32,7 +62,7 @@ export default function Login() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.button} onPress={() => handleLogin()}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
