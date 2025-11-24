@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { BackHandler, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
@@ -16,6 +15,22 @@ const HomeScreen: React.FC = () => {
     { id: 6, title: "River Route", distance: "20km away", image: require('@/images/logo.webp') },
     { id: 7, title: "Night Drive", distance: "8km away", image: require('@/images/logo.webp') },
   ]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();   
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
