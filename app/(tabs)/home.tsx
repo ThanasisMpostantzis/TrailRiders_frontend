@@ -92,8 +92,8 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.logo}>Home</Text>
           </View>
           <View style={styles.headerIcons}>
-            <Ionicons name="notifications-outline" size={24} color="black" style={{ marginRight: 16 }} />
-            <Ionicons name="menu" size={24} color="black" />
+            <Ionicons name="notifications-outline" size={24} color="black" style={{ marginRight: 16 }} onPress={() => router.push('/HeaderScreens/notifications')}/>
+            <Ionicons name="menu" size={24} color="black" onPress={() => router.push('/HeaderScreens/menu')}/>
           </View>
         </View>
 
