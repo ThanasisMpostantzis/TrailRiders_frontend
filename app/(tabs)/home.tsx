@@ -1,23 +1,53 @@
+import { getAllRidesApi, Ride } from '@/api/ridesApi';
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useState } from "react";
-import { BackHandler, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  BackHandler,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
-  const [featuredRides] = useState([
-    { id: 1, title: "Athens Moto/Car Meet", distance: "12km away", image: require('@/images/logo.webp') },
-    { id: 2, title: "Mountain Trail", distance: "25km away", image: require('@/images/logo.webp') },
-    { id: 3, title: "Thessaloniki City Tour", distance: "5km away", image: require('@/images/logo.webp') },
-    { id: 4, title: "Sunset Ride", distance: "15km away", image: require('@/images/logo.webp') },
-    { id: 5, title: "Forest Path", distance: "30km away", image: require('@/images/logo.webp') },
-    { id: 6, title: "River Route", distance: "20km away", image: require('@/images/logo.webp') },
-    { id: 7, title: "Night Drive", distance: "8km away", image: require('@/images/logo.webp') },
-  ]);
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
+  // FETCH RIDES FROM DB
+  const fetchRides = async () => {
+    try {
+      const data = await getAllRidesApi();
+      setRides(data);
+    } catch (error) {
+      console.log("Error fetching rides:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRides();
+  }, []);
+
+  // REFRESH HOME PAGE
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchRides();
+  }, []);
+
+  // HANDLE TO BACK ACTION STO HOME SCREEN ETSI WSTE NA MIN PAEI PISW STO LOGIN
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const onBackPress = () => {
         BackHandler.exitApp();   
         return true;
@@ -32,9 +62,24 @@ const HomeScreen: React.FC = () => {
     }, [])
   );
 
+  // LOADING HANDLING
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#003366" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#003366"/>
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoView}>
@@ -47,51 +92,73 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.logo}>Home</Text>
           </View>
           <View style={styles.headerIcons}>
-            <Ionicons name="notifications-outline" size={24} color="black" style={{ marginRight: 16 }} />
-            <Ionicons name="menu" size={24} color="black" />
+            <Ionicons name="notifications-outline" size={24} color="black" style={{ marginRight: 16 }} onPress={() => router.push('/HeaderScreens/notifications')}/>
+            <Ionicons name="menu" size={24} color="black" onPress={() => router.push('/HeaderScreens/menu')}/>
           </View>
         </View>
 
         {/* Search */}
         <TextInput style={styles.search} placeholder="Search" placeholderTextColor="#aaa" />
 
-        {/* Featured */}
+        {/* Featured Rides */}
         <Text style={styles.sectionTitle}>Featured Rides</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {featuredRides.map((ride) => (
+          {rides.map((ride) => (
             <View key={ride.id} style={styles.featuredCard}>
-              <Image source={ride.image} style={styles.rideImage} />
-              <Text style={styles.rideTitle}>{ride.title}</Text>
-              <Text style={styles.subText2}>{ride.distance}</Text>
-              <TouchableOpacity style={styles.featuredDetails}>
+              <Image
+                /* THELEI ALLAGI NA PAIRNEI IMAGES APO TO DATABASE TO EXW VALEI STATIC */
+                source={ride.image ? require('@/images/logo.webp') : require('@/images/logo.webp')} 
+                style={styles.rideImage} 
+              />
+              
+              {/* TITLE FROM DB */}
+              <Text style={styles.rideTitle} numberOfLines={2}>{ride.title}</Text>
+              
+              {/* RIDE DISTANCE FROM DB */}
+              <Text style={styles.subText2}>{ride.rideDistance} km</Text>
+              
+              <TouchableOpacity style={styles.featuredDetails} onPress={() => router.push(`/rideDetails/${ride.id}` as any)}>
+                {/* edw prepei ena call component για RIDE DETAILS */}
                 <Text style={styles.buttonText}>Details</Text>
               </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
 
-        {/* Recommended */}
+        {/* Recommended THA DINEI TO PIO KONTINO RIDE ANALOGA TO LOCATION TOU XRHSTH KAI TO STARTLOCATION */}
         <Text style={styles.sectionTitle}>Recommended</Text>
-        <View style={styles.row}>
-          <Image source={require('@/images/logo.webp')} style={styles.smallCard} />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.linkText}>Ride to Ioannina</Text>
-            <Text style={styles.subText}>4km away</Text>
+        {rides.length > 0 && (
+          <View style={styles.row}>
+             <Image 
+                /* THELEI ALLAGI NA PAIRNEI IMAGES APO TO DATABASE TO EXW VALEI STATIC */
+                source={rides[0].image ? require('@/images/logo.webp') : require('@/images/logo.webp')} 
+                style={styles.smallCard} 
+             />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.linkText}>{rides[1].title}</Text>
+              <Text style={styles.subText}>{rides[1].rideDistance} km away</Text>
+            </View>
           </View>
-        </View>
+        )}
 
-        {/* Upcoming */}
+        {/* Upcoming THA DOUME TI AKRIVWS EVENT THA EMFANIZEI STO TELOS*/}
         <Text style={styles.sectionTitle}>Upcoming</Text>
-        <View style={styles.row}>
-          <Image source={require('@/images/logo.webp')} style={styles.smallCard} />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.boldText}>Morning Ride</Text>
-            <Text style={styles.subText}>45km away</Text>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>See Details</Text>
-            </TouchableOpacity>
+        {rides.length > 1 && (
+          <View style={styles.row}>
+            <Image 
+                 /* THELEI ALLAGI NA PAIRNEI IMAGES APO TO DATABASE TO EXW VALEI STATIC */
+                source={rides[1].image ? require('@/images/logo.webp') : require('@/images/logo.webp')} 
+                style={styles.smallCard} 
+             />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.boldText}>{rides[0].title}</Text>
+              <Text style={styles.subText}>{rides[0].rideDistance} km away</Text>
+              <TouchableOpacity style={styles.button} onPress={() => router.push(`/rideDetails/${rides[0].id}` as any)}>
+                <Text style={styles.buttonText}>See Details</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,7 +223,7 @@ const styles = StyleSheet.create({
     height: "50%",
     borderRadius: 8,
     marginBottom: 8,
-    justifyContent: 'center'
+    resizeMode: 'cover', // GIA TIN ANALOGIA ISWS XREIASTEI NA VGEI
   },
   rideTitle: {
     fontWeight: "700",
@@ -183,7 +250,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 12,
-    backgroundColor: "#e06c6c",
+    backgroundColor: "#e06c6c", // BACKGROUND COLOR AN LEIPEI I EIKONA ISWS XREIASTEI NA SVISTEI KATHWS THA MPAINEI STATIC IMG AN DEN VALEI O USER
     marginBlock: "3%",
     marginLeft: "3%"
   },
