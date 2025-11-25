@@ -85,6 +85,26 @@ export default function RideDetailsScreen() {
             <Text style={styles.infoText}>Route: {ride.startLocation} ➝ {ride.finishLocation}</Text>
         </View>
 
+        <View style={styles.infoRow}>
+          <Ionicons name="time" size={18} color="#555"/>
+          <Text style={styles.infoText}>Expected time: {ride.expectedTime} minutes</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons name="bicycle-outline" size={18} color="#555"/>
+          <Text style={styles.infoText}>Category: {ride.category}</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons name="flame-outline" size={18} color="#555"/>
+          <Text style={styles.infoText}>Difficulty: {ride.difficulty}</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons name="trail-sign-outline" size={18} color="#555"/>
+          <Text style={styles.infoText}>Ride Type: {ride.rideType}</Text>
+        </View>
+
         <Text style={styles.sectionTitle}>Description</Text>
         <Text style={styles.description}>{ride.description}</Text>
 
@@ -97,6 +117,11 @@ export default function RideDetailsScreen() {
                 ))}
             </View>
         )}
+
+        <View style={styles.miniButton}>
+          <Text style={styles.miniButtonText}>Join Ride</Text>
+          <Ionicons name="chevron-forward" size={14} color="#fff" />
+        </View>
       </View>
     </ScrollView>
   );
@@ -116,5 +141,19 @@ const styles = StyleSheet.create({
   infoText: { marginLeft: 10, fontSize: 16, color: "#444" },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 5 },
   description: { fontSize: 15, lineHeight: 22, color: "#666" },
-  stopText: { fontSize: 15, marginLeft: 10, marginBottom: 2, color: "#444" }
+  stopText: { fontSize: 15, marginLeft: 10, marginBottom: 2, color: "#444" },
+   miniButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "#003366",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    gap: 4
+  },
+  miniButtonText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700"
+  },
 });
