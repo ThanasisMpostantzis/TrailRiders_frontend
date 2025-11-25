@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -15,7 +16,7 @@ export default function Login() {
     try {
       const data = await loginApi(userName.trim(), password.trim());
       console.log("Logged in:", data);
-
+      await AsyncStorage.setItem('username', userName.trim());
       setFlag(true);
 
       setTimeout(() => {

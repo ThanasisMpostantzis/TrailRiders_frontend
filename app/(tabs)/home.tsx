@@ -1,5 +1,6 @@
 import { getAllRidesApi, Ride } from '@/api/ridesApi';
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -8,6 +9,7 @@ import {
   Image,
   RefreshControl,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -21,8 +23,9 @@ const HomeScreen: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [username, setUsername] = useState('Rider');
 
-  // FETCH RIDES FROM DB
+  // FETCH RIDES
   const fetchRides = async () => {
     try {
       const data = await getAllRidesApi();
@@ -35,258 +38,343 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  const loadUsername = async () => {
+    try {
+      const storedName = await AsyncStorage.getItem('username');
+      if (storedName) {
+        setUsername(storedName);
+      }
+    } catch (e) {
+      console.log("Error loading name:", e);
+    }
+  };
+
   useEffect(() => {
     fetchRides();
+    loadUsername();
   }, []);
 
-  // REFRESH HOME PAGE
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchRides();
+    loadUsername();
   }, []);
 
-  // HANDLE TO BACK ACTION STO HOME SCREEN ETSI WSTE NA MIN PAEI PISW STO LOGIN
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        BackHandler.exitApp();   
+        BackHandler.exitApp();
         return true;
       };
-
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
-      );
-
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
       return () => subscription.remove();
     }, [])
   );
 
-  // LOADING HANDLING
   if (loading) {
     return (
-      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#003366" />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <ScrollView 
-        style={styles.container} 
-        contentContainerStyle={{ paddingBottom: 20 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#003366"/>
-        }
-      >
-        {/* Header */}
-        <View style={styles.header}>
+    <View style={styles.mainContainer}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      {/* --- STATIC HEADER SECTION --- */}
+      <SafeAreaView style={styles.staticHeaderWrapper} edges={['top']}>
+        <View style={styles.headerContent}>
           <View style={styles.logoView}>
-            <TouchableOpacity
-              style={styles.logo2}
-              onPress={() => router.push('/modal')}
-            >
-              <Image source={require('@/images/logo.webp')} style={styles.logo2}/>
+            <TouchableOpacity onPress={() => router.push('/modal')} activeOpacity={0.8}>
+              <Image source={require('@/images/logo.webp')} style={styles.profileImage} />
             </TouchableOpacity>
-            <Text style={styles.logo}>Home</Text>
+            <View>
+                <Text style={styles.greetingText}>Welcome back,</Text>
+                <Text style={styles.appName}>{username}</Text>
+            </View>
           </View>
+          
           <View style={styles.headerIcons}>
-            <Ionicons name="notifications-outline" size={24} color="black" style={{ marginRight: 16 }} onPress={() => router.push('/HeaderScreens/notifications')}/>
-            <Ionicons name="menu" size={24} color="black" onPress={() => router.push('/HeaderScreens/menu')}/>
+            <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/HeaderScreens/notifications')}>
+               <View style={styles.notificationDot} />
+               <Ionicons name="notifications-outline" size={22} color="#1A2B48" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/HeaderScreens/menu')}>
+              <Ionicons name="grid-outline" size={22} color="#1A2B48" />
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Search */}
-        <TextInput style={styles.search} placeholder="Search" placeholderTextColor="#aaa" />
-
-        {/* Featured Rides */}
-        <Text style={styles.sectionTitle}>Featured Rides</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {rides.map((ride) => (
-            <View key={ride.id} style={styles.featuredCard}>
-              <Image
-                /* THELEI ALLAGI NA PAIRNEI IMAGES APO TO DATABASE TO EXW VALEI STATIC */
-                source={ride.image ? require('@/images/logo.webp') : require('@/images/logo.webp')} 
-                style={styles.rideImage} 
-              />
-              
-              {/* TITLE FROM DB */}
-              <Text style={styles.rideTitle} numberOfLines={2}>{ride.title}</Text>
-              
-              {/* RIDE DISTANCE FROM DB */}
-              <Text style={styles.subText2}>{ride.rideDistance} km</Text>
-              
-              <TouchableOpacity style={styles.featuredDetails} onPress={() => router.push(`/rideDetails/${ride.id}` as any)}>
-                {/* edw prepei ena call component για RIDE DETAILS */}
-                <Text style={styles.buttonText}>Details</Text>
-              </TouchableOpacity>
+        <View style={styles.searchWrapper}>
+            <View style={styles.searchContainer}>
+                <Ionicons name="search-outline" size={20} color="#003366" />
+                <TextInput 
+                    style={styles.searchInput} 
+                    placeholder="Where to next?" 
+                    placeholderTextColor="#999" 
+                />
+                <TouchableOpacity style={styles.filterButton}>
+                    <Ionicons name="options-outline" size={18} color="#fff" />
+                </TouchableOpacity>
             </View>
+        </View>
+
+        <View style={styles.separator} />
+      </SafeAreaView>
+
+      {/* --- SCROLLABLE CONTENT --- */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#003366" />}
+      >
+        
+        {/* Featured Rides */}
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured Rides</Text>
+            <TouchableOpacity><Text style={styles.seeAllText}>See All</Text></TouchableOpacity>
+        </View>
+
+        <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.horizontalList}
+        >
+          {rides.map((ride) => (
+            <TouchableOpacity 
+                key={ride.id} 
+                style={styles.featuredCard}
+                activeOpacity={0.9}
+                onPress={() => router.push(`/rideDetails/${ride.id}` as any)}
+            >
+              {/* Image Background */}
+              <View style={styles.imageContainer}>
+                  <Image
+                    source={ride.image ? require('@/images/logo.webp') : require('@/images/logo.webp')}
+                    style={styles.rideImage}
+                  />
+                  <View style={styles.distanceBadge}>
+                      <Ionicons name="location-sharp" size={10} color="#fff" />
+                      <Text style={styles.distanceText}>{ride.rideDistance} km</Text>
+                  </View>
+              </View>
+
+              <View style={styles.cardContent}>
+                  {/* TITLE (TOP) */}
+                  <Text style={styles.rideTitle} numberOfLines={1}>{ride.title}</Text>
+                  
+                  {/* MIDDLE/BOTTOM CONTAINER (CENTERED VERTICALLY IN REMAINING SPACE) */}
+                  <View style={styles.infoContainer}>
+                      
+                      {/* LEFT COLUMN: Date & Time */}
+                      <View style={styles.leftInfoColumn}>
+                          <View style={styles.infoRow}>
+                              <Ionicons name="calendar-outline" size={14} color="#666" />
+                              <Text style={styles.infoText}>{ride.date || 'TBA'}</Text>
+                          </View>
+                          <View style={styles.infoRow}>
+                              <Ionicons name="time-outline" size={14} color="#666" />
+                              <Text style={styles.infoText}>{ride.expectedTime + " minutes"|| '2hours'}</Text>
+                          </View>
+                      </View>
+
+                      {/* RIGHT COLUMN: Button */}
+                      <View style={styles.miniButton}>
+                          <Text style={styles.miniButtonText}>Details</Text>
+                          <Ionicons name="chevron-forward" size={14} color="#fff" />
+                      </View>
+
+                  </View>
+              </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Recommended THA DINEI TO PIO KONTINO RIDE ANALOGA TO LOCATION TOU XRHSTH KAI TO STARTLOCATION */}
-        <Text style={styles.sectionTitle}>Recommended</Text>
-        {rides.length > 0 && (
-          <View style={styles.row}>
-             <Image 
-                /* THELEI ALLAGI NA PAIRNEI IMAGES APO TO DATABASE TO EXW VALEI STATIC */
-                source={rides[0].image ? require('@/images/logo.webp') : require('@/images/logo.webp')} 
-                style={styles.smallCard} 
-             />
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.linkText}>{rides[1].title}</Text>
-              <Text style={styles.subText}>{rides[1].rideDistance} km away</Text>
-            </View>
-          </View>
-        )}
+        {/* Recommended List */}
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recommended</Text>
+        </View>
+        
+        {rides.slice(0, 3).map((ride, index) => (
+            <TouchableOpacity 
+                key={index} 
+                style={styles.listCard}
+                activeOpacity={0.7}
+                onPress={() => router.push(`/rideDetails/${ride.id}` as any)}
+            >
+                <Image
+                    source={ride.image ? require('@/images/logo.webp') : require('@/images/logo.webp')}
+                    style={styles.listImage}
+                />
+                <View style={styles.listInfo}>
+                    <View style={styles.tagContainer}>
+                        <Text style={styles.tagText}>{ride.category || 'Adventure'}</Text>
+                    </View>
+                    <Text style={styles.listTitle} numberOfLines={1}>{ride.title}</Text>
+                    <View style={styles.listMeta}>
+                        <Ionicons name="speedometer-outline" size={14} color="#666" />
+                        <Text style={styles.listMetaText}>{ride.rideDistance} km</Text>
+                    </View>
+                </View>
+                <View style={styles.chevronContainer}>
+                    <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                </View>
+            </TouchableOpacity>
+        ))}
 
-        {/* Upcoming THA DOUME TI AKRIVWS EVENT THA EMFANIZEI STO TELOS*/}
-        <Text style={styles.sectionTitle}>Upcoming</Text>
-        {rides.length > 1 && (
-          <View style={styles.row}>
-            <Image 
-                 /* THELEI ALLAGI NA PAIRNEI IMAGES APO TO DATABASE TO EXW VALEI STATIC */
-                source={rides[1].image ? require('@/images/logo.webp') : require('@/images/logo.webp')} 
-                style={styles.smallCard} 
-             />
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.boldText}>{rides[0].title}</Text>
-              <Text style={styles.subText}>{rides[0].rideDistance} km away</Text>
-              <TouchableOpacity style={styles.button} onPress={() => router.push(`/rideDetails/${rides[0].id}` as any)}>
-                <Text style={styles.buttonText}>See Details</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  safeArea: {
+  mainContainer: {
     flex: 1,
-    backgroundColor: "#DCDCDC",
-    paddingTop: 20
+    backgroundColor: "#F8F9FA",
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
+  loadingContainer: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: "#F8F9FA"
   },
-  header: {
+
+  // --- HEADER ---
+  staticHeaderWrapper: {
+    backgroundColor: "#fff",
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    paddingBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 5,
+    zIndex: 100,
+  },
+  headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 15,
   },
-  logo: {
-    fontSize: 18,
-    fontWeight: "700",
-    paddingLeft: 15
-  },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  search: {
-    backgroundColor: "#e6e6e6",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 8,
-    marginTop: 12,
-  },
+  logoView: { flexDirection: "row", alignItems: "center" },
+  profileImage: { width: 44, height: 44, borderRadius: 22, marginRight: 12, borderWidth: 2, borderColor: '#F0F0F0' },
+  greetingText: { fontSize: 12, color: "#888", fontWeight: "500" },
+  appName: { fontSize: 18, fontWeight: "800", color: "#003366", letterSpacing: 0.5 },
+  headerIcons: { flexDirection: "row", gap: 12 },
+  iconButton: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#F4F6F9", justifyContent: 'center', alignItems: 'center' },
+  notificationDot: { position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF4D4D', borderWidth: 1, borderColor: '#fff', zIndex: 10 },
+
+  // --- SEARCH ---
+  searchWrapper: { paddingHorizontal: 20 },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: "#F4F6F9", borderRadius: 16, paddingHorizontal: 15, height: 50 },
+  searchInput: { flex: 1, fontSize: 15, color: '#333', marginLeft: 10, fontWeight: "500" },
+  filterButton: { backgroundColor: "#003366", width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  separator: { height: 1, backgroundColor: "transparent", marginTop: 15 },
+
+  // --- CONTENT ---
+  scrollView: { flex: 1, paddingTop: 20 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#1A2B48" },
+  seeAllText: { fontSize: 13, color: "#003366", fontWeight: "600" },
+
+  // --- FEATURED CARD ---
+  horizontalList: { paddingHorizontal: 20, paddingBottom: 20 },
   featuredCard: {
-    width: 160,
-    height: 180,
-    borderRadius: 12,
+    width: 220, 
+    height: 240, 
     backgroundColor: "#fff",
-    marginRight: 12,
-    padding: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
+    borderRadius: 20,
+    marginRight: 15,
+    shadowColor: "#003366",
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    elevation: 6,
   },
-  rideImage: {
-    width: "70%",
-    height: "50%",
-    borderRadius: 8,
-    marginBottom: 8,
-    resizeMode: 'cover', // GIA TIN ANALOGIA ISWS XREIASTEI NA VGEI
+  imageContainer: {
+    height: 140, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', position: 'relative'
+  },
+  rideImage: { width: "100%", height: "100%", resizeMode: 'cover' },
+  distanceBadge: {
+    position: 'absolute', top: 10, right: 10, backgroundColor: "rgba(0,0,0,0.6)", flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 12, gap: 4
+  },
+  distanceText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
+  
+  // --- NEW LAYOUT STYLES ---
+  cardContent: {
+    padding: 12,
+    flex: 1,
+    // Δεν βάζουμε justifyContent εδώ, το αφήνουμε να ρέει
   },
   rideTitle: {
-    fontWeight: "700",
-    fontSize: 12,
-    textAlign: "center"
+    fontSize: 16, 
+    fontWeight: "bold", 
+    color: "#1A2B48", 
+    marginBottom: 4 
   },
-  subText: {
-    color: "#555",
-    fontSize: 10,
+  
+  // Ο Container για το κάτω μέρος (Date/Time αριστερά, Button δεξιά)
+  infoContainer: {
+      flex: 1, // Πιάνει όλο τον υπόλοιπο χώρο
+      flexDirection: 'row', // Τα βάζει δίπλα δίπλα
+      justifyContent: 'space-between', // Τα σπρώχνει στις άκρες
+      alignItems: 'center', // Τα κεντράρει κάθετα
   },
-  subText2: {
-    color: "#555",
-    fontSize: 10,
-    marginBottom: "5%"
+
+  // Αριστερή στήλη (Ημερομηνία πάνω, Ώρα κάτω)
+  leftInfoColumn: {
+      flexDirection: 'column',
+      gap: 6, // Κενό ανάμεσα σε ημερομηνία και ώρα
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    backgroundColor: "#fff",
-    borderRadius: 12
+  infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6
   },
-  smallCard: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: "#e06c6c", // BACKGROUND COLOR AN LEIPEI I EIKONA ISWS XREIASTEI NA SVISTEI KATHWS THA MPAINEI STATIC IMG AN DEN VALEI O USER
-    marginBlock: "3%",
-    marginLeft: "3%"
+  infoText: {
+      fontSize: 12,
+      color: "#666",
+      fontWeight: "500"
   },
-  linkText: {
-    color: "#0044cc",
-    fontWeight: "600",
-  },
-  boldText: {
-    fontWeight: "700",
-  },
-  featuredDetails: {
+
+  // Δεξιά πλευρά (Κουμπί)
+  miniButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: "#003366",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignSelf: "center"
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    gap: 4
   },
-  button: {
-    backgroundColor: "#003366",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginTop: 6,
-    alignSelf: "flex-start",
-  },
-  buttonText: {
+  miniButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 11,
+    fontWeight: "700"
   },
-  logo2:{
-    width: 65,
-    height: 65,
-    borderRadius: 35
+
+  // --- LIST CARD ---
+  listCard: {
+    flexDirection: "row", backgroundColor: "#fff", marginHorizontal: 20, marginBottom: 15, padding: 12, borderRadius: 16, alignItems: 'center',
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2,
   },
-  logoView:{
-    flexDirection: "row",
-    alignItems: "center"
-  }
+  listImage: { width: 70, height: 70, borderRadius: 12, backgroundColor: "#f0f0f0" },
+  listInfo: { flex: 1, marginLeft: 15 },
+  tagContainer: {
+    backgroundColor: "#F4F6F9", alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6, marginBottom: 6
+  },
+  tagText: { fontSize: 10, color: "#555", fontWeight: "600", textTransform: 'uppercase' },
+  listTitle: { fontSize: 15, fontWeight: "700", color: "#1A2B48", marginBottom: 4 },
+  listMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  listMetaText: { fontSize: 12, color: "#888" },
+  chevronContainer: { padding: 5 }
 });
