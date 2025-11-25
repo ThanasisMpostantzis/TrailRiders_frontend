@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const BASE_URL = "http://10.232.202.179:8000/rides";
+const BASE_URL = "http://192.168.1.36:8000/rides";
  
 export interface Ride {
     id: number;
     organizer: string;
     title: string;
-    joinedRiders: string[];
+    usersId: string[];
     image: string;
     rideDistance: number;
     startLocation: string;
@@ -19,6 +19,10 @@ export interface Ride {
     difficulty: string;
     rideType: string;
     expectedTime: number;
+    startLat: number;
+    startLng: number;
+    endLat: number;
+    endLng: number;
 }
 
 export async function getAllRidesApi(): Promise<Ride[]> {
@@ -40,3 +44,5 @@ export async function getRideById(id : string) : Promise<Ride> {
         throw err.response?.data || err.message;
     }
 }
+
+
