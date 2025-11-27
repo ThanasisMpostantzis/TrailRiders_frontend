@@ -13,14 +13,14 @@ import {
 } from "react-native";
 
 export default function RideDetailsScreen() {
-  const { id } = useLocalSearchParams(); // 1. Πιάνουμε το ID από το URL
+  const { id } = useLocalSearchParams(); // Πιάνουμε το ID από το url
   const router = useRouter();
   
   const [ride, setRide] = useState<Ride | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 2. Μόλις έχουμε ID, καλούμε το Backend
+    // Μόλις έχουμε ID, καλούμε το Backend
     if (id) {
       fetchRideData(id.toString());
     }

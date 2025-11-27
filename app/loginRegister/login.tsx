@@ -14,9 +14,32 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const data = await loginApi(userName.trim(), password.trim());
-      console.log("Logged in:", data);
-      await AsyncStorage.setItem('username', userName.trim());
+      const response = await loginApi(userName.trim(), password.trim());
+      console.log("Logged in:", response);
+
+      if (response.type === "success") {
+        if (response.user && response.user.id && response.user.email) {
+            
+            await AsyncStorage.setItem('username', response.user.username || "");
+            await AsyncStorage.setItem('userId', String(response.user.id)); 
+            await AsyncStorage.setItem('userEmail', response.user.email.trim() || "");
+            
+            console.log("User ID saved:", response.user.id);
+            console.log("Username saved: ", response.user.username);
+            console.log("Email saved: ", response.user.email);
+        } else {
+            console.warn("⚠️ Το Backend δεν έστειλε το user ID!");
+        }
+
+        setFlag(true);
+        setTimeout(() => {
+            router.replace('/(tabs)/home');
+        }, 1000);
+      } else {
+        // Αν το type δεν ειναι success
+        Alert.alert("Error", response.message || "Login failed");
+      }
+
       setFlag(true);
 
       setTimeout(() => {
