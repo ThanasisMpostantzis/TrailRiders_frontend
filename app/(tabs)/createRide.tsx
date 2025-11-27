@@ -25,7 +25,7 @@ import {
 } from "react-native";
 import MapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TabView } from 'react-native-tab-view'; // Αφαίρεσα το SceneMap γιατί δεν το χρειαζόμαστε πλέον
+import { TabView } from 'react-native-tab-view';
 
 const BASE_URL = "http://192.168.1.2:8000";
 
@@ -193,11 +193,11 @@ export default function CreateRideScreen() {
     }
   };
 
-// --- ΥΠΟΛΟΓΙΣΜΟΣ ΧΩΡΙΣ GOOGLE KEY (ΔΕΝ ΒΓΑΖΕΙ ΠΟΤΕ NULL) ---
+// ΥΠΟΛΟΓΙΣΜΟΣ ΧΩΡΙΣ GOOGLE API KEY
   const calculateRouteStats = async () => {
     if (!startPoint) return { time: "00:00", distance: 0 };
 
-    // Τύπος Haversine (Μαθηματικά για απόσταση)
+    // Τύπος Haversine
     const getDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
       const R = 6371; 
       const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -212,7 +212,7 @@ export default function CreateRideScreen() {
 
     let totalDistKm = 0;
 
-    // Φτιάχνουμε λίστα με όλα τα σημεία (Start -> Stops -> Finish)
+    // Λίστα με όλα τα σημεία (Start Stops Finish)
     const allPoints = [
       startPoint,
       ...stopsList,
@@ -305,7 +305,7 @@ export default function CreateRideScreen() {
     }
   };
 
-  // --- Η ΔΙΟΡΘΩΣΗ ΕΙΝΑΙ ΕΔΩ: renderScene με switch case ---
+  //render SCENE
   const renderScene = ({ route }: { route: { key: string } }) => {
     switch (route.key) {
       case 'general':
