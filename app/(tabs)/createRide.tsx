@@ -1,303 +1,603 @@
-// app/tabs/createRide.tsx
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions
+} from "react-native";
 import MapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TabView } from 'react-native-tab-view'; // Αφαίρεσα το SceneMap γιατί δεν το χρειαζόμαστε πλέον
 
-const BASE_URL = 'http://192.168.1.2:8000/rides';
+const BASE_URL = "http://192.168.1.2:8000";
 
+// DROPDOWN OPTIONS
+const CATEGORIES = [
+  "🏍️ Street / Naked",
+  "🏁 Supersport / Racing",
+  "🧭 Adventure / Touring",
+  "🌲 Enduro / Cross",
+  "🦅 Cruiser / Chopper",
+  "🛵 Scooter",
+  "🕶️ Classic / Cafe Racer",
+  "🦆 Papaki"
+];
 
-// Reverse Geocoding Function
+const DIFFICULTIES = [
+  "🟢 Easy (Αρχάριος)", 
+  "🟡 Medium (Μέτριος)", 
+  "🔴 Hard (Έμπειρος)", 
+  "⚫ Extreme (Επαγγελματίας)"
+];
 
-async function getLocationName(lat: number, lng: number) {
-  try {
-    const results = await Location.reverseGeocodeAsync({
-      latitude: lat,
-      longitude: lng,
-    });
+const RIDE_TYPES = [
+  "🛣️ Άσφαλτος (Tarmac)", 
+  "🌲 Χώμα (Off-Road)", 
+  "🌗 Μικτό (On/Off)", 
+  "🏁 Πίστα (Track Day)"
+];
 
-    if (results && results.length > 0) {
-      const place = results[0];
-      return (
-        place.city ||
-        place.name ||
-        place.district ||
-        place.region ||
-        place.subregion ||
-        "Unknown"
-      );
-    }
-  } catch (err) {
-    console.log("Reverse Geocoding Error:", err);
-  }
-  return "Unknown";
+interface MapPoint {
+  name: string;
+  latitude: number;
+  longitude: number;
 }
 
 export default function CreateRideScreen() {
-  const [title, setTitle] = useState('');
-  const [startLocationName, setStartLocationName] = useState('');
-  const [endLocationName, setEndLocationName] = useState('');
-  
-  // User Data
-  const [organizerName, setOrganizerName] = useState('');
-  const [myUserId, setMyUserId] = useState('');
+  const router = useRouter();
+  const layout = useWindowDimensions();
+  const [loading, setLoading] = useState(false);
 
-  // Coordinates
-  const [startCoord, setStartCoord] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [endCoord, setEndCoord] = useState<{ latitude: number; longitude: number } | null>(null);
-  
-  // UI States
-  const [selectMode, setSelectMode] = useState<'start' | 'end'>('start');
-  const [region, setRegion] = useState({
-    latitude: 37.9838,
-    longitude: 23.7275,
-    latitudeDelta: 0.15,
-    longitudeDelta: 0.15,
+  // Tabs
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: 'general', title: 'Γενικά' },
+    { key: 'route', title: 'Διαδρομή & Χάρτης' },
+  ]);
+
+  // Map States
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 40.6401, longitude: 22.9444, latitudeDelta: 0.05, longitudeDelta: 0.05,
   });
 
-  // 1. Φόρτωση GPS & User Data κατά την εκκίνηση
-  useEffect(() => {
-    const init = async () => {
-      // load user
-      try {
-        const storedUser = await AsyncStorage.getItem('username');
-        const storedId = await AsyncStorage.getItem('userId');
-        
-        if (storedUser) setOrganizerName(storedUser);
-        if (storedId) setMyUserId(storedId);
-        
-        console.log("Loaded User:", storedUser, "ID:", storedId);
-      } catch (e) {
-        console.log("Error loading storage", e);
-      }
+  const [selectionMode, setSelectionMode] = useState<'start' | 'finish' | 'stop'>('start');
+  const [startPoint, setStartPoint] = useState<MapPoint | null>(null);
+  const [finishPoint, setFinishPoint] = useState<MapPoint | null>(null);
+  const [stopsList, setStopsList] = useState<MapPoint[]>([]);
+  const [form, setForm] = useState({
+    title: '',
+    image: '',
+    description: '',
+    category: '',
+    difficulty: '',
+    rideType: '',
+  });
 
-      // load loc
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        setRegion((prev) => ({
-          ...prev,
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        }));
-      }
-    };
-    
-    init();
+  // Date Picker States
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [formattedDateString, setFormattedDateString] = useState(""); 
+
+  // Modal States
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalOptions, setModalOptions] = useState<string[]>([]);
+  const [modalTitle, setModalTitle] = useState("");
+  const [currentField, setCurrentField] = useState<string>("");
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location.coords);
+      setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
+    })();
   }, []);
 
-  // 2. Map Handler ( πρεπει να διορθωθει γιατι μου φαινεται αργει και δεν κανει κλικ καλα )
-  const handleMapPress = async (e: MapPressEvent) => {
-    const coord = e.nativeEvent.coordinate;
-    const name = await getLocationName(coord.latitude, coord.longitude);
+  // Helpers
+  const openModal = (field: string, title: string, options: string[]) => {
+    setCurrentField(field);
+    setModalTitle(title);
+    setModalOptions(options);
+    setModalVisible(true);
+  };
 
-    if (selectMode === 'start') {
-      setStartCoord(coord);
-      setStartLocationName(name);
-    } else {
-      setEndCoord(coord);
-      setEndLocationName(name);
+  const handleSelectOption = (item: string) => {
+    setForm(prev => ({ ...prev, [currentField]: item }));
+    setModalVisible(false);
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const selectedAsset = result.assets[0];
+      const base64Img = `data:image/jpeg;base64,${selectedAsset.base64}`;
+      setForm(prev => ({ ...prev, image: base64Img }));
     }
   };
 
-  // Date type (YYYY-MM-DD) current date
-  const getFormattedDate = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      return `${year}-${month}-${day}`;
-  };
-
-  // 4. Create Ride Submit
-  const handleCreateRide = async () => {
-    if (!title || !startCoord || !endCoord) {
-      Alert.alert('Error', 'Please enter a title and select Start/End points on the map.');
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    if (event.type === 'dismissed') {
+      setShowDatePicker(false);
       return;
     }
+    const currentDate = selectedDate || date;
+    setShowDatePicker(false);
+    setDate(currentDate);
+    setShowTimePicker(true); 
+  };
 
+  const onChangeTime = (event: any, selectedDate?: Date) => {
+    if (event.type === 'dismissed') {
+      setShowTimePicker(false);
+      return;
+    }
+    const currentDate = selectedDate || date;
+    setShowTimePicker(false);
+    setDate(currentDate);
+    const formatted = currentDate.toISOString().slice(0, 10) + ' ' + currentDate.toTimeString().slice(0, 5);
+    setFormattedDateString(formatted);
+  };
+
+  const handleMapPress = async (e: MapPressEvent) => {
+    const coords = e.nativeEvent.coordinate;
+    let addressName = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`; 
     try {
-      const payload = {
-        organizer: organizerName || "Unknown Rider",
-        title: title,
-        // Στέλνουμε το ID του χρήστη σε Array αλλα για καποιο λογο δεν το περναει σε Array να το δουμε
-        usersId: myUserId ? [myUserId] : [], 
-        
-        startLocation: startLocationName || "Map Point",
-        finishLocation: endLocationName || "Map Point",
-        date: getFormattedDate(),
-        
-        startLat: startCoord.latitude,
-        startLng: startCoord.longitude,
-        endLat: endCoord.latitude,
-        endLng: endCoord.longitude,
+      const geocode = await Location.reverseGeocodeAsync(coords);
+      if (geocode.length > 0) {
+        const g = geocode[0];
+        const street = g.street || g.name || '';
+        const city = g.city || g.region || '';
+        if (street || city) addressName = `${street} ${g.streetNumber || ''}, ${city}`.trim();
+        if (addressName.startsWith(',')) addressName = addressName.substring(1).trim();
+      }
+    } catch (error) { console.log("Geocoding error", error); }
 
-        // Dummy Data (για να μην σκάσει η βάση)
-        image: '',
-        rideDistance: 0,
-        status: 'upcoming',
-        category: 'Road Trip',
-        description: 'No description provided.',
-        stops: [],
-        difficulty: 'Medium',
-        rideType: 'Road',
-        expectedTime: 120
+    const newPoint: MapPoint = { name: addressName, latitude: coords.latitude, longitude: coords.longitude };
+
+    if (selectionMode === 'start') {
+      setStartPoint(newPoint);
+      Alert.alert("Start Point", addressName);
+    } else if (selectionMode === 'finish') {
+      setFinishPoint(newPoint);
+      Alert.alert("Finish Point", addressName);
+    } else if (selectionMode === 'stop') {
+      setStopsList(prev => [...prev, newPoint]);
+    }
+  };
+
+// --- ΥΠΟΛΟΓΙΣΜΟΣ ΧΩΡΙΣ GOOGLE KEY (ΔΕΝ ΒΓΑΖΕΙ ΠΟΤΕ NULL) ---
+  const calculateRouteStats = async () => {
+    if (!startPoint) return { time: "00:00", distance: 0 };
+
+    // Τύπος Haversine (Μαθηματικά για απόσταση)
+    const getDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371; 
+      const dLat = (lat2 - lat1) * (Math.PI / 180);
+      const dLon = (lon2 - lon1) * (Math.PI / 180);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    let totalDistKm = 0;
+
+    // Φτιάχνουμε λίστα με όλα τα σημεία (Start -> Stops -> Finish)
+    const allPoints = [
+      startPoint,
+      ...stopsList,
+      finishPoint
+    ].filter(p => p !== null) as MapPoint[];
+
+    // Αν έχουμε μόνο 1 σημείο, απόσταση 0
+    if (allPoints.length < 2) return { time: "00:00", distance: 0 };
+
+    // Πρόσθεση αποστάσεων
+    for (let i = 0; i < allPoints.length - 1; i++) {
+      totalDistKm += getDist(
+        allPoints[i].latitude, allPoints[i].longitude,
+        allPoints[i+1].latitude, allPoints[i+1].longitude
+      );
+    }
+
+    // Προσθέτουμε +30% γιατί οι δρόμοι δεν είναι ευθεία γραμμή
+    const realRoadDistance = totalDistKm * 1.4;
+
+    // Υποθέτουμε μέση ταχύτητα 40 km/h
+    const speedKmH = 40; 
+
+    // setara * 1.3 για να ταιριάζει καλύτερα με google maps
+    const totalHours = (realRoadDistance / speedKmH) * 1.3;
+    
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+    
+    // Format "HH:mm"
+    const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+    return { 
+      time: timeString, 
+      distance: parseFloat(realRoadDistance.toFixed(1)) 
+    };
+  };
+
+  // Delete stops
+  const removeStop = (indexToRemove: number) => {
+    setStopsList(prev => prev.filter((_, i) => i !== indexToRemove));
+  };
+
+  const handleCreateRide = async () => {
+    if (!form.title) return Alert.alert("Προσοχή", "Συμπλήρωσε Τίτλο.");
+    if (!startPoint) return Alert.alert("Προσοχή", "Συμπλήρωσε Start Point.");
+    if (!formattedDateString) return Alert.alert("Προσοχή", "Συμπλήρωσε Ημερομηνία.");
+
+    setLoading(true);
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) throw new Error("No user");
+
+      const parts = formattedDateString.split(' ');
+      const datePart = parts[0];
+      const timePart = parts[1] || "";
+      const username = await AsyncStorage.getItem('username');
+
+      // Υπολογισμός διαδρομής
+      console.log("Calculating route...");
+      const routeStats = await calculateRouteStats();
+
+      const payload = {
+        ...form,
+        organizer: username || "Άγνωστος",
+        creatorId: userId,
+        date: datePart,
+        expectedTime: routeStats.time,
+        rideDistance: routeStats.distance,
+        ride_time: timePart,
+        startLocation: startPoint.name,
+        finishLocation: finishPoint ? finishPoint.name : '',
+        stops: stopsList.map(s => s.name),
+        startLat: startPoint.latitude,
+        startLng: startPoint.longitude,
+        endLat: finishPoint ? finishPoint.latitude : null,
+        endLng: finishPoint ? finishPoint.longitude : null,
       };
 
-      console.log("Sending Ride Data:", payload);
+      console.log("Sending Payload:", payload);
+      await axios.post(`${BASE_URL}/rides/createRide`, payload);
+      
+      Alert.alert("Επιτυχία", "Το Ride δημιουργήθηκε!");
+      router.back();
+    } catch (error) {
+      console.log("Create Error:", error);
+      Alert.alert("Σφάλμα", "Κάτι πήγε στραβά.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      await axios.post(`${BASE_URL}/createRide`, payload);
+  // --- Η ΔΙΟΡΘΩΣΗ ΕΙΝΑΙ ΕΔΩ: renderScene με switch case ---
+  const renderScene = ({ route }: { route: { key: string } }) => {
+    switch (route.key) {
+      case 'general':
+        return (
+          <ScrollView style={styles.sceneScroll} contentContainerStyle={styles.sceneContent}>
+            <Text style={styles.label}>Τίτλος Ride *</Text>
+            <TextInput 
+              style={styles.input} 
+              placeholder="π.χ. Κυριακάτικη Βόλτα" 
+              value={form.title} 
+              onChangeText={(t) => setForm(prev => ({...prev, title: t}))} 
+            />
 
-      Alert.alert('Success', 'Ride created successfully!');
+            <Text style={styles.label}>Ημερομηνία & Ώρα *</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dropdownButton}>
+              <Text style={formattedDateString ? styles.inputText : styles.placeholderText}>
+                {formattedDateString || "Επίλεξε Ημερομηνία & Ώρα"}
+              </Text>
+              <Ionicons name="calendar-outline" size={20} color="#666" />
+            </TouchableOpacity>
 
-      // Reset Fields
-      setTitle('');
-      setStartLocationName('');
-      setEndLocationName('');
-      setStartCoord(null);
-      setEndCoord(null);
+            <Text style={styles.label}>Κατηγορία Μηχανής</Text>
+            <TouchableOpacity 
+              style={styles.dropdownButton} 
+              onPress={() => openModal('category', 'Επίλεξε Κατηγορία', CATEGORIES)}
+            >
+              <Text style={form.category ? styles.inputText : styles.placeholderText}>
+                {form.category || "Επίλεξε τύπο μηχανής"}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#666" />
+            </TouchableOpacity>
 
-    } catch (err: any) {
-      console.log("Create Ride Error:", err);
-      Alert.alert('Error', 'Could not create ride. Check console.');
+            <Text style={styles.label}>Εικόνα Ride</Text>
+            <TouchableOpacity onPress={pickImage} style={styles.imagePickerBtn}>
+              {form.image ? (
+                <Image source={{ uri: form.image }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.placeholderContainer}>
+                  <Ionicons name="camera-outline" size={40} color="#666" />
+                  <Text style={styles.placeholderImageText}>Πάτα για upload εικόνας</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            
+            {form.image ? (
+              <TouchableOpacity onPress={() => setForm(prev => ({...prev, image: ''}))} style={{alignSelf:'flex-end', marginBottom: 15}}>
+                <Text style={{color: 'red', fontSize: 12}}>✖ Διαγραφή Εικόνας</Text>
+              </TouchableOpacity>
+            ) : null}
+
+            <Text style={styles.label}>Περιγραφή</Text>
+            <TextInput 
+              style={[styles.input, { height: 80 }]} 
+              multiline placeholder="Γράψε κάποιες λεπτομέρεις για την διαδρομή σου..." 
+              value={form.description} 
+              onChangeText={(t) => setForm(prev => ({...prev, description: t}))} 
+            />
+
+            <TouchableOpacity style={styles.nextButton} onPress={() => setIndex(1)}>
+              <Text style={styles.nextButtonText}>Επόμενο &gt;</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        );
+
+      case 'route':
+        return (
+          <ScrollView style={styles.sceneScroll} contentContainerStyle={styles.sceneContent}>
+            <Text style={styles.sectionHeader}>Χάρτης Διαδρομής</Text>
+            <View style={styles.mapContainer}>
+              <MapView style={styles.map} region={mapRegion} showsUserLocation={true} onPress={handleMapPress}>
+                {startPoint && <Marker coordinate={startPoint} pinColor="green" title="Start" />}
+                {finishPoint && <Marker coordinate={finishPoint} pinColor="red" title="Finish" />}
+                {stopsList.map((stop, i) => (
+                  <Marker key={i} coordinate={stop} pinColor="blue" title={`Stop ${i+1}`} />
+                ))}
+              </MapView>
+            </View>
+
+            <View style={styles.selectorContainer}>
+              <TouchableOpacity style={[styles.selectorBtn, selectionMode === 'start' && styles.btnStartActive]} onPress={() => setSelectionMode('start')}>
+                <Text style={[styles.selectorText, selectionMode === 'start' && styles.textWhite]}>📍 Start</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.selectorBtn, selectionMode === 'stop' && styles.btnStopActive]} onPress={() => setSelectionMode('stop')}>
+                <Text style={[styles.selectorText, selectionMode === 'stop' && styles.textWhite]}>➕ Add Stop</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.selectorBtn, selectionMode === 'finish' && styles.btnFinishActive]} onPress={() => setSelectionMode('finish')}>
+                <Text style={[styles.selectorText, selectionMode === 'finish' && styles.textWhite]}>🏁 Finish</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Σημείο Εκκίνησης</Text>
+            <View style={styles.readOnlyInput}><Text>{startPoint?.name || "Δεν επιλέχθηκε"}</Text></View>
+            
+            {stopsList.length > 0 && (
+              <View style={{marginBottom: 15}}>
+                 <Text style={styles.label}>Ενδιάμεσες Στάσεις ({stopsList.length})</Text>
+                 {stopsList.map((stop, i) => (
+                   <View key={i} style={styles.stopItem}>
+                     <Text style={styles.stopText}>
+                       {i+1}. {stop.name}
+                     </Text>
+                     <TouchableOpacity onPress={() => removeStop(i)} style={{padding: 5}}>
+                       <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                     </TouchableOpacity>
+                   </View>
+                 ))}
+              </View>
+            )}
+
+            <Text style={styles.label}>Τερματισμός</Text>
+            <View style={styles.readOnlyInput}><Text>{finishPoint?.name || "Δεν επιλέχθηκε"}</Text></View>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+              <View style={{ width: '48%' }}>
+                <Text style={styles.label}>Δυσκολία</Text>
+                <TouchableOpacity 
+                  style={styles.dropdownButton} 
+                  onPress={() => openModal('difficulty', 'Επίλεξε Δυσκολία', DIFFICULTIES)}
+                >
+                   <Text numberOfLines={1} style={form.difficulty ? {color:'#000', fontSize:13} : {color:'#999', fontSize:13}}>
+                     {form.difficulty || "Select"}
+                   </Text>
+                   <Ionicons name="chevron-down" size={16} color="#666" />
+                </TouchableOpacity>
+              </View>
+              <View style={{ width: '48%' }}>
+                <Text style={styles.label}>Τύπος Εδάφους</Text>
+                <TouchableOpacity 
+                  style={styles.dropdownButton} 
+                  onPress={() => openModal('rideType', 'Τύπος Διαδρομής', RIDE_TYPES)}
+                >
+                   <Text numberOfLines={1} style={form.rideType ? {color:'#000', fontSize:13} : {color:'#999', fontSize:13}}>
+                     {form.rideType || "Select"}
+                   </Text>
+                   <Ionicons name="chevron-down" size={16} color="#666" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.createButton} onPress={handleCreateRide} disabled={loading}>
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createButtonText}>ΔΗΜΙΟΥΡΓΙΑ RIDE</Text>}
+            </TouchableOpacity>
+          </ScrollView>
+        );
+      default:
+        return null;
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.label}>Ride Title</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="π.χ. Βόλτα προς Θεσσαλονίκη"
-        value={title}
-        onChangeText={setTitle}
-      />
-
-      <View style={styles.row}>
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <Text style={styles.label}>Start Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Auto-fill form map"
-            value={startLocationName}
-            editable={false}
-          />
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color="#003366" /></TouchableOpacity>
+          <Text style={styles.headerTitle}>Create New Ride</Text>
+          <View style={{ width: 24 }} />
         </View>
-        <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text style={styles.label}>End Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Auto-fill from map"
-            value={endLocationName}
-            editable={false}
-          />
+
+        <View style={styles.tabs}>
+          {routes.map((route, i) => (
+            <TouchableOpacity key={route.key} style={[styles.tabButton, index === i && styles.activeTab]} onPress={() => setIndex(i)}>
+              <Text style={[styles.tabText, index === i && styles.activeTabText]}>{route.title}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      </View>
 
-      <View style={styles.modeRow}>
-        <TouchableOpacity
-          style={[styles.modeButton, selectMode === 'start' && styles.modeButtonActive]}
-          onPress={() => setSelectMode('start')}
-        >
-          <Text style={[styles.modeText, selectMode === 'start' && styles.modeTextActive]}>
-            Select START
-          </Text>
-        </TouchableOpacity>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={() => null}
+          swipeEnabled={true}
+        />
 
-        <TouchableOpacity
-          style={[styles.modeButton, selectMode === 'end' && styles.modeButtonActive]}
-          onPress={() => setSelectMode('end')}
-        >
-          <Text style={[styles.modeText, selectMode === 'end' && styles.modeTextActive]}>
-            Select END
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {/* MODALS gia dropdown */}
+        <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+          <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{modalTitle}</Text>
+              <FlatList
+                data={modalOptions}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.modalItem} onPress={() => handleSelectOption(item)}>
+                    <Text style={styles.modalItemText}>{item}</Text>
+                    {form[currentField as keyof typeof form] === item && <Ionicons name="checkmark" size={20} color="green" />}
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeButtonText}>Κλείσιμο</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
 
-      <MapView style={styles.map} region={region} onPress={handleMapPress}>
-        {startCoord && <Marker coordinate={startCoord} pinColor="green" title="Start" />}
-        {endCoord && <Marker coordinate={endCoord} pinColor="red" title="End" />}
-      </MapView>
-
-      <TouchableOpacity style={styles.createButton} onPress={handleCreateRide}>
-        <Text style={styles.createButtonText}>Create Ride</Text>
-      </TouchableOpacity>
+        {/* date PICKER */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChangeDate}
+          />
+        )}
+        {showTimePicker && (
+          <DateTimePicker
+            value={date}
+            mode="time"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChangeTime}
+          />
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    backgroundColor: '#F2F2F2',
+  safeArea: { flex: 1, backgroundColor: "#F2F2F2" },
+  header: { flexDirection: "row", justifyContent: "space-between", padding: 20, alignItems: "center" },
+  headerTitle: { fontSize: 20, fontWeight: "700", color: "#003366" },
+  tabs: { flexDirection: "row", backgroundColor: "#E5E5E5", borderRadius: 10, marginHorizontal: 20, marginBottom: 10 },
+  tabButton: { flex: 1, paddingVertical: 10, borderRadius: 10 },
+  activeTab: { backgroundColor: "#fff", elevation: 2 },
+  tabText: { textAlign: "center", color: "#666" },
+  activeTabText: { color: "#003366", fontWeight: "700" },
+  sceneScroll: { flex: 1 },
+  sceneContent: { padding: 20, paddingBottom: 60 },
+  label: { marginBottom: 6, fontWeight: '600', color: '#333' },
+  input: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 15, borderWidth: 1, borderColor: '#ddd' },
+  readOnlyInput: { backgroundColor: '#e9ecef', borderRadius: 10, padding: 12, marginBottom: 15, borderWidth: 1, borderColor: '#ddd' },
+  
+  // Dropdown Style
+  dropdownButton: { 
+    backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 15, 
+    borderWidth: 1, borderColor: '#ddd', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' 
   },
-  label: {
-    fontWeight: '600',
-    marginBottom: 4,
-    color: '#333',
-  },
-  input: {
+  inputText: { color: '#000', fontSize: 15 },
+  placeholderText: { color: '#999', fontSize: 15 },
+
+  // Map & Selectors sTYLE
+  sectionHeader: { fontSize: 16, fontWeight: '700', color: '#003366', marginBottom: 10 },
+  mapContainer: { height: 280, borderRadius: 15, overflow: 'hidden', marginBottom: 10, borderWidth: 1, borderColor: '#ccc' },
+  map: { width: '100%', height: '100%' },
+  selectorContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+  selectorBtn: { flex: 0.32, paddingVertical: 8, borderRadius: 8, backgroundColor: '#ddd', alignItems: 'center' },
+  selectorText: { fontWeight: '600', fontSize: 12, color: '#333' },
+  btnStartActive: { backgroundColor: 'green' },
+  btnFinishActive: { backgroundColor: 'red' },
+  btnStopActive: { backgroundColor: 'blue' },
+  textWhite: { color: '#fff' },
+
+  // Buttons Style
+  nextButton: { backgroundColor: '#003366', padding: 15, borderRadius: 12, alignItems: 'center', marginTop: 10 },
+  nextButtonText: { color: '#fff', fontWeight: '600' },
+  createButton: { backgroundColor: '#003366', padding: 15, borderRadius: 12, alignItems: 'center', marginTop: 10 },
+  createButtonText: { color: '#fff', fontWeight: '800' },
+
+  // Modal Styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '50%' },
+  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 15, textAlign: 'center', color: '#003366' },
+  modalItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee', flexDirection: 'row', justifyContent: 'space-between' },
+  modalItemText: { fontSize: 16, color: '#333' },
+  closeButton: { marginTop: 20, backgroundColor: '#eee', padding: 12, borderRadius: 10, alignItems: 'center' },
+  closeButtonText: { fontWeight: '700', color: '#333' },
+
+  //image styles
+  imagePickerBtn: { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#ddd', borderStyle: 'dashed', height: 150, justifyContent: 'center',
+    alignItems: 'center', marginBottom: 5, overflow: 'hidden' },
+  previewImage: { width: '100%', height: '100%', resizeMode: 'cover', },
+  placeholderContainer: { alignItems: 'center', justifyContent: 'center' },
+  placeholderImageText: { color: '#666', marginTop: 5, fontSize: 14 },
+
+  //stops style
+  stopItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
+    padding: 10,
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    marginBottom: 12,
+    marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#eee',
+    justifyContent: 'space-between'
   },
-  row: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  modeRow: {
-    flexDirection: 'row',
-    marginVertical: 8,
-  },
-  modeButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 4,
-  },
-  modeButtonActive: {
-    backgroundColor: '#003366',
-  },
-  modeText: {
-    textAlign: 'center',
+  stopText: {
+    fontSize: 13,
     color: '#333',
-    fontWeight: '600',
-  },
-  modeTextActive: {
-    color: '#fff',
-  },
-  map: {
     flex: 1,
-    borderRadius: 10,
-    marginVertical: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  createButton: {
-    backgroundColor: '#003366',
-    borderRadius: 10,
-    paddingVertical: 14,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  createButtonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
+    marginRight: 10
   },
 });
