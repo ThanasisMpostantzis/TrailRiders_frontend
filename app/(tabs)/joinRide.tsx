@@ -10,6 +10,7 @@ import {
   Alert,
   FlatList,
   Image,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -132,7 +133,7 @@ export default function JoinRideScreen() {
     }
 
     return (
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={() => router.push(`/rideDetails/${item.id}` as any)}>
         <Image
           source={item.image ? { uri: item.image } : require('@/images/logo.webp')}
           style={styles.mapImage}
@@ -160,7 +161,7 @@ export default function JoinRideScreen() {
         >
           <Text style={styles.joinText}>Join</Text>
         </TouchableOpacity>
-      </View>
+      </Pressable>
     );
   };
 
