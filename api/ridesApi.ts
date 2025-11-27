@@ -1,9 +1,31 @@
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.36:8000/rides";
- 
+const BASE_URL = "http://192.168.1.2:8000/rides"; 
+
 export interface Ride {
     id: number;
+    organizer: string;
+    title: string;
+    usersId: string[];
+    image: string;
+    rideDistance: number;
+    startLocation: string;
+    finishLocation: string;
+    date: string;
+    status: string;
+    category: string;
+    description: string;
+    stops: string[];
+    difficulty: string;
+    rideType: string;
+    expectedTime: number;
+    startLat: number;
+    startLng: number;
+    endLat: number;
+    endLng: number;
+}
+
+export interface RideCreation {
     organizer: string;
     title: string;
     usersId: string[];
@@ -45,4 +67,13 @@ export async function getRideById(id : string) : Promise<Ride> {
     }
 }
 
-
+// ✅ ΣΩΣΤΟ: Χρησιμοποιούμε το RideCreation
+export async function createRideApi(rideData: RideCreation) {
+    try {
+        const res = await axios.post(`${BASE_URL}/createRide`, rideData);
+        return res.data;
+    } catch (err: any) {
+        console.log("Error creating ride:", err);
+        throw err.response?.data || err.message;
+    }
+}

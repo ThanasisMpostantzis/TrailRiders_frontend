@@ -1,6 +1,7 @@
-import { getAllRidesApi, Ride } from '@/api/ridesApi';
+import { getAllRidesApi, Ride, RideCreation } from '@/api/ridesApi';
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -18,12 +19,42 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+//Υπολογισμός απόστασης
+function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; 
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      (Math.sin(dLon / 2) ** 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 const HomeScreen: React.FC = () => {
   const router = useRouter();
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [username, setUsername] = useState('Rider');
+
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  
+    // 1. GET USER LOCATION
+    useEffect(() => {
+      (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          return;
+        }
+        const loc = await Location.getCurrentPositionAsync({});
+        setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+      })();
+    }, []);
+
 
   // FETCH RIDES
   const fetchRides = async () => {
@@ -37,6 +68,41 @@ const HomeScreen: React.FC = () => {
       setRefreshing(false);
     }
   };
+
+  const getAwayDistance = (item: RideCreation) => {
+      if (userLocation && item.startLat && item.startLng) {
+          const dist = getDistanceKm(
+              userLocation.lat, userLocation.lng, 
+              item.startLat, item.startLng
+          );
+          return dist < 1 
+            ? `${(dist * 1000).toFixed(0)} m` 
+            : `${dist.toFixed(1)} km`;
+      }
+      if (item.rideDistance) {
+          return `${item.rideDistance} km`;
+      }
+
+      return "N/A";
+  };
+
+  const getDistance = (item: RideCreation) => {
+    if (item.startLat && item.startLng && item.endLat && item.endLng) {
+            const oneWay = getDistanceKm(
+                item.startLat, item.startLng,
+                item.endLat, item.endLng
+            );
+            const roundTrip = oneWay * 2; // Πήγαινε - Έλα
+            
+            return `${roundTrip.toFixed(1)} km`;
+        }
+        else if (item.rideDistance && item.rideDistance > 0) {
+            return `${item.rideDistance} km`;
+        } 
+        else {
+            return "Distance N/A";
+        }
+  }
 
   const loadUsername = async () => {
     try {
@@ -83,7 +149,7 @@ const HomeScreen: React.FC = () => {
     <View style={styles.mainContainer}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
-      {/* --- STATIC HEADER SECTION --- */}
+      {/* STATIC HEADER SECTION */}
       <SafeAreaView style={styles.staticHeaderWrapper} edges={['top']}>
         <View style={styles.headerContent}>
           <View style={styles.logoView}>
@@ -124,7 +190,7 @@ const HomeScreen: React.FC = () => {
         <View style={styles.separator} />
       </SafeAreaView>
 
-      {/* --- SCROLLABLE CONTENT --- */}
+      {/* SCROLLABLE CONTENT */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -135,7 +201,7 @@ const HomeScreen: React.FC = () => {
         {/* Featured Rides */}
         <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Featured Rides</Text>
-            <TouchableOpacity><Text style={styles.seeAllText}>See All</Text></TouchableOpacity>
+            <TouchableOpacity><Text style={styles.seeAllText} onPress={() => router.push({ pathname: '/joinRide', params: { tab: 'all' } })}>See All</Text></TouchableOpacity>
         </View>
 
         <ScrollView 
@@ -158,7 +224,7 @@ const HomeScreen: React.FC = () => {
                   />
                   <View style={styles.distanceBadge}>
                       <Ionicons name="location-sharp" size={10} color="#fff" />
-                      <Text style={styles.distanceText}>{ride.rideDistance} km</Text>
+                      <Text style={styles.distanceText}>{getAwayDistance(ride)} away</Text>
                   </View>
               </View>
 
@@ -166,7 +232,7 @@ const HomeScreen: React.FC = () => {
                   {/* TITLE (TOP) */}
                   <Text style={styles.rideTitle} numberOfLines={1}>{ride.title}</Text>
                   
-                  {/* MIDDLE/BOTTOM CONTAINER (CENTERED VERTICALLY IN REMAINING SPACE) */}
+                  {/* MIDDLE/BOTTOM CONTAINER */}
                   <View style={styles.infoContainer}>
                       
                       {/* LEFT COLUMN: Date & Time */}
@@ -181,7 +247,7 @@ const HomeScreen: React.FC = () => {
                           </View>
                       </View>
 
-                      {/* RIGHT COLUMN: Button */}
+                      {/* RIGHT COLUMN: DetailsButton */}
                       <View style={styles.miniButton}>
                           <Text style={styles.miniButtonText}>Details</Text>
                           <Ionicons name="chevron-forward" size={14} color="#fff" />
@@ -190,7 +256,7 @@ const HomeScreen: React.FC = () => {
                   </View>
               </View>
             </TouchableOpacity>
-          ))}
+          )).slice(0,6)}
         </ScrollView>
 
         {/* Recommended List */}
@@ -216,7 +282,7 @@ const HomeScreen: React.FC = () => {
                     <Text style={styles.listTitle} numberOfLines={1}>{ride.title}</Text>
                     <View style={styles.listMeta}>
                         <Ionicons name="speedometer-outline" size={14} color="#666" />
-                        <Text style={styles.listMetaText}>{ride.rideDistance} km</Text>
+                        <Text style={styles.listMetaText}>{getDistance(ride)}</Text>
                     </View>
                 </View>
                 <View style={styles.chevronContainer}>
@@ -309,11 +375,9 @@ const styles = StyleSheet.create({
   },
   distanceText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
   
-  // --- NEW LAYOUT STYLES ---
   cardContent: {
     padding: 12,
     flex: 1,
-    // Δεν βάζουμε justifyContent εδώ, το αφήνουμε να ρέει
   },
   rideTitle: {
     fontSize: 16, 
@@ -324,16 +388,16 @@ const styles = StyleSheet.create({
   
   // Ο Container για το κάτω μέρος (Date/Time αριστερά, Button δεξιά)
   infoContainer: {
-      flex: 1, // Πιάνει όλο τον υπόλοιπο χώρο
-      flexDirection: 'row', // Τα βάζει δίπλα δίπλα
-      justifyContent: 'space-between', // Τα σπρώχνει στις άκρες
-      alignItems: 'center', // Τα κεντράρει κάθετα
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
   },
 
   // Αριστερή στήλη (Ημερομηνία πάνω, Ώρα κάτω)
   leftInfoColumn: {
       flexDirection: 'column',
-      gap: 6, // Κενό ανάμεσα σε ημερομηνία και ώρα
+      gap: 6,
   },
   infoRow: {
       flexDirection: 'row',
