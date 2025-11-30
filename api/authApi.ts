@@ -2,6 +2,7 @@
 import axios from "axios";
 
 const BASE_URL = "http://192.168.1.2:8000/auth";
+const URL = "http://192.168.1.2:8000";
 
 // ---------- LOGIN ----------
 export async function loginApi(username: string, pwd: string) {
@@ -67,5 +68,39 @@ export async function resetPasswordApi(
     return res.data;
   } catch (err: any) {
     throw err.response?.data || err.message;
+  }
+}
+
+// authApi.ts
+
+
+export async function getProfileApi(userId: string) {
+  try {
+    const r = await axios.get(`${URL}/api/user/${userId}`);
+    const userData = r.data;
+
+    // Αν tags υπάρχει, μετατρέπουμε σε array
+    if (userData.tags && typeof userData.tags === "string") {
+      userData.tags = userData.tags.split(",").map((t: string) => t.trim()).filter(Boolean);
+    } else {
+      userData.tags = [];
+    }
+
+    return { type: "success", user: userData }; 
+  } catch (e) {
+    console.log("getProfile error", e);
+    return { type: "error", message: "Could not fetch profile" };
+  }
+}
+
+
+export async function updateProfileApi(payload: any) {
+  try {
+    // payload.image and payload.cover are data URIs (data:image/...base64,...)
+    const r = await axios.post(`${URL}/api/user/updateProfile`, payload, { headers: { "Content-Type": "application/json" }});
+    return r.data; // should return { type:'success', user: {...} }
+  } catch (e) {
+    console.log("updateProfile error", e);
+    return { type: "error", message: "Could not update profile" };
   }
 }
