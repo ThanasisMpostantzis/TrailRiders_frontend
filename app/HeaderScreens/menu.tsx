@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -29,6 +30,12 @@ export default function SettingsScreen() {
             ]
         );
     };
+
+    const handleLogout = async () => {
+        await AsyncStorage.clear();
+        console.log("Successfull Logout: Storage Cleared")
+        router.replace('/loginRegister/login');
+    }
 
     // Ένα βοηθητικό component για κάθε γραμμή ρύθμισης για να μην γράφουμε τον ίδιο κώδικα συνέχεια
     const SettingItem = ({ icon, title, onPress, isDestructive = false, hasSwitch = false, switchValue = false, onSwitchChange = () => {} }: any) => (
@@ -135,7 +142,7 @@ export default function SettingsScreen() {
                     <SettingItem 
                         icon="log-out-outline" 
                         title="Αποσύνδεση" 
-                        onPress={() => router.replace('/loginRegister/login')} 
+                        onPress={() => handleLogout()} 
                     />
                 </View>
 

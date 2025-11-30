@@ -40,6 +40,7 @@ const HomeScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [username, setUsername] = useState('Rider');
+  const [image, setImage] = useState('');
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
@@ -115,15 +116,28 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  const loadImage = async () => {
+    try {
+      const image = await AsyncStorage.getItem('image');
+      if(image) {
+        setImage(image);
+      }
+    } catch (e) {
+      console.log("Error load image: ", e);
+    }
+  }
+
   useEffect(() => {
     fetchRides();
     loadUsername();
+    loadImage();
   }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchRides();
     loadUsername();
+    loadImage();
   }, []);
 
   useFocusEffect(
@@ -154,7 +168,7 @@ const HomeScreen: React.FC = () => {
         <View style={styles.headerContent}>
           <View style={styles.logoView}>
             <TouchableOpacity onPress={() => router.push('/modal')} activeOpacity={0.8}>
-              <Image source={require('@/images/logo.webp')} style={styles.profileImage} />
+              <Image source={image ? {uri: image } : require('@/images/logo.webp')} style={styles.profileImage} />
             </TouchableOpacity>
             <View>
                 <Text style={styles.greetingText}>Welcome back,</Text>
@@ -219,7 +233,7 @@ const HomeScreen: React.FC = () => {
               {/* Image Background */}
               <View style={styles.imageContainer}>
                   <Image
-                    source={ride.image ? require('@/images/logo.webp') : require('@/images/logo.webp')}
+                    source={ride.image ? { uri: ride.image } : require('@/images/logo.webp')}
                     style={styles.rideImage}
                   />
                   <View style={styles.distanceBadge}>
@@ -272,7 +286,7 @@ const HomeScreen: React.FC = () => {
                 onPress={() => router.push(`/rideDetails/${ride.id}` as any)}
             >
                 <Image
-                    source={ride.image ? require('@/images/logo.webp') : require('@/images/logo.webp')}
+                    source={ride.image ? { uri: ride.image } : require('@/images/logo.webp')}
                     style={styles.listImage}
                 />
                 <View style={styles.listInfo}>
