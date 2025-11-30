@@ -237,10 +237,13 @@ export default function CreateRideScreen() {
     const speedKmH = 40; 
 
     // setara * 1.3 για να ταιριάζει καλύτερα με google maps
-    const totalHours = (realRoadDistance / speedKmH) * 1.3;
+    const rawTotalHours = (realRoadDistance / speedKmH) * 1.3;
     
-    const hours = Math.floor(totalHours);
-    const minutes = Math.round((totalHours - hours) * 60);
+    const totalMinutes = Math.round(rawTotalHours * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    
     
     // Format "HH:mm"
     const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
