@@ -1,14 +1,12 @@
-import Splash from '@/app/Splash'; // Ή όπου αλλού έχεις το Splash component
+import Splash from '@/app/Splash';
 import { Stack } from 'expo-router';
 import * as SplashScreenExpo from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 
-// Αγνοούμε το warning για το SafeAreaView για να είναι καθαρή η κονσόλα
 LogBox.ignoreLogs(['SafeAreaView has been deprecated']);
 
-// Κρατάμε το Native Splash (στατική εικόνα) μέχρι να φορτώσει το JS bundle
 SplashScreenExpo.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -32,8 +30,6 @@ export default function RootLayout() {
   if (!appIsReady) {
     return (
       <Splash 
-        // Μόλις τελειώσει το animation στο Splash.tsx, καλείται αυτό
-        // και η εφαρμογή προχωράει στο Login
         onFinish={() => setAppIsReady(true)} 
       />
     );

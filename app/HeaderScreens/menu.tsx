@@ -16,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function SettingsScreen() {
     const router = useRouter();
     
-    // State για τα Switches (π.χ. Notifications)
     const [pushEnabled, setPushEnabled] = useState(true);
 
     // Συνάρτηση για Διαγραφή Λογαριασμού
@@ -37,7 +36,6 @@ export default function SettingsScreen() {
         router.replace('/loginRegister/login');
     }
 
-    // Ένα βοηθητικό component για κάθε γραμμή ρύθμισης για να μην γράφουμε τον ίδιο κώδικα συνέχεια
     const SettingItem = ({ icon, title, onPress, isDestructive = false, hasSwitch = false, switchValue = false, onSwitchChange = () => {} }: any) => (
         <TouchableOpacity 
             style={styles.settingRow} 
@@ -156,7 +154,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f5f5f5" },
     
-    // Header Styles (Consistency)
+    // Header Styles
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
