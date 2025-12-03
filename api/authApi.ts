@@ -1,8 +1,8 @@
 // authApi.ts
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.2:8000/auth";
-const URL = "http://192.168.1.2:8000";
+const BASE_URL = "http://172.20.10.4:8000/auth";
+const URL = "http://172.20.10.4:8000";
 
 // ---------- LOGIN ----------
 export async function loginApi(username: string, pwd: string) {

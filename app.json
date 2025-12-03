@@ -13,6 +13,12 @@
         "image": "./images/logo.webp",
         "resizeMode": "contain",
         "backgroundColor": "#DCDCDC"
+      },
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourname.trailriders",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Η εφαρμογή χρειάζεται την τοποθεσία σας για να σας δείξει διαδρομές και αναβάτες κοντά σας.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Η εφαρμογή χρειάζεται την τοποθεσία σας για την καταγραφή διαδρομής."
       }
     },
     "splash": {
