@@ -196,6 +196,14 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/*UpGrade Button
+        <TouchableOpacity
+        style ={styles.upgradeButton}
+        onPress={() => router.push('/premium')}
+        >
+          <Text style={styles.upgradeText}>Become TrailRider+</Text>
+        </TouchableOpacity>*/}
+
         {/* Content */}
         <View style={styles.content}>
           <Text style={styles.sectionTitle}>About</Text>
@@ -458,4 +466,21 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: "row", justifyContent: "space-between", paddingTop: 40, alignItems: "center" },
   headerTitle: { fontSize: 20, fontWeight: "700", color: "#003366" },
+
+  upgradeButton: {
+  backgroundColor: "#003366",
+  paddingVertical: 14,
+  marginHorizontal: 16,
+  borderRadius: 14,
+  alignItems: "center",
+  marginTop: 10,
+  elevation: 3
+},
+
+upgradeText: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "700",
+  letterSpacing: 0.5
+},
 });
