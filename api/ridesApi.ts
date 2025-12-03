@@ -1,7 +1,5 @@
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.2:8000/rides"; 
-
 export interface Ride {
     id: number;
     organizer: string;
@@ -49,7 +47,7 @@ export interface RideCreation {
 
 export async function getAllRidesApi(): Promise<Ride[]> {
     try {
-        const res = await axios.get(`${BASE_URL}/getAllRides`);
+        const res = await axios.get(`${process.env.RIDES_URL}/getAllRides`);
         return res.data;
     } catch (err: any) {
         console.log("Error fetching rides: ", err);
@@ -59,7 +57,7 @@ export async function getAllRidesApi(): Promise<Ride[]> {
 
 export async function getRideById(id : string) : Promise<Ride> {
     try {
-        const res = await axios.get(`${BASE_URL}/get/${id}`);
+        const res = await axios.get(`${process.env.RIDES_URL}/get/${id}`);
         return res.data;
     } catch(err: any) {
         console.log("Error fetching ride ", "with id ", id, ": ", err);
@@ -70,7 +68,7 @@ export async function getRideById(id : string) : Promise<Ride> {
 // ✅ ΣΩΣΤΟ: Χρησιμοποιούμε το RideCreation
 export async function createRideApi(rideData: RideCreation) {
     try {
-        const res = await axios.post(`${BASE_URL}/createRide`, rideData);
+        const res = await axios.post(`${process.env.RIDES_URL}/createRide`, rideData);
         return res.data;
     } catch (err: any) {
         console.log("Error creating ride:", err);
