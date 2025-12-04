@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    Alert,
     ScrollView,
     StyleSheet,
     Switch,
@@ -12,22 +11,32 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DeleteAccountModal from "./deleteUser";
 
 export default function SettingsScreen() {
     const router = useRouter();
     
+    const [modalVisible, setModalVisible] = useState(false);
+    const [username, setUsername] = useState('Loading...');
+    
     const [pushEnabled, setPushEnabled] = useState(true);
 
-    // Συνάρτηση για Διαγραφή Λογαριασμού
+    useEffect(() => {
+        const loadUsername = async () => {
+            const user = await AsyncStorage.getItem("username");
+            if (user) {
+                setUsername(user);
+            } else {
+                setUsername('User');
+            }
+        };
+        loadUsername();
+    }, []);
+
+
+    // Modal Handle
     const handleDeleteAccount = () => {
-        Alert.alert(
-            "Διαγραφή Λογαριασμού",
-            "Είστε σίγουρος; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-            [
-                { text: "Ακύρωση", style: "cancel" },
-                { text: "Διαγραφή", style: "destructive", onPress: () => console.log("Account Deleted") }
-            ]
-        );
+        setModalVisible(true);
     };
 
     const handleLogout = async () => {
@@ -70,7 +79,14 @@ export default function SettingsScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* --- HEADER (Ίδιο με Notifications) --- */}
+            {/* --- Modal --- */}
+            <DeleteAccountModal
+                isVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                currentUsername={username}
+            />
+
+            {/* --- HEADER --- */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#003366" />
@@ -82,25 +98,25 @@ export default function SettingsScreen() {
             <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 30 }}>
                 
                 {/* --- SECTION 1: ΛΟΓΑΡΙΑΣΜΟΣ --- */}
-                <Text style={styles.sectionHeader}>Λογαριασμός</Text>
+                <Text style={styles.sectionHeader}>Λογαριασμός ({username})</Text>
                 <View style={styles.card}>
                     <SettingItem 
                         icon="person-outline" 
                         title="Επεξεργασία Προφίλ" 
-                        onPress={() => console.log("Edit Profile")} 
+                        onPress={() => router.push("/modal")}
                     />
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="lock-closed-outline" 
                         title="Αλλαγή Κωδικού" 
-                        onPress={() => console.log("Edw prepei na valw reset password ")} 
+                        onPress={() => router.push("/HeaderScreens/changePassword")} 
                     />
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="trash-outline" 
                         title="Διαγραφή Λογαριασμού" 
                         isDestructive={true}
-                        onPress={handleDeleteAccount} 
+                        onPress={handleDeleteAccount}
                     />
                 </View>
 
@@ -153,7 +169,6 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f5f5f5" },
-    
     // Header Styles
     header: {
         flexDirection: "row",
@@ -167,9 +182,7 @@ const styles = StyleSheet.create({
         height: 60,
     },
     headerTitle: { fontSize: 18, fontWeight: "bold", color: "#003366" },
-
     content: { padding: 16 },
-
     // Section Styles
     sectionHeader: {
         fontSize: 14,
@@ -180,7 +193,6 @@ const styles = StyleSheet.create({
         marginLeft: 4,
         textTransform: 'uppercase'
     },
-    
     // Card Styles (To match notification items)
     card: {
         backgroundColor: "white",
@@ -192,7 +204,6 @@ const styles = StyleSheet.create({
         elevation: 2,
         marginBottom: 20,
     },
-
     // Row Styles
     settingRow: {
         flexDirection: "row",
@@ -209,13 +220,13 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 8,
-        backgroundColor: "#f0f4f8", // Light blue bg for icons
+        backgroundColor: "#f0f4f8",
         justifyContent: "center",
         alignItems: "center",
         marginRight: 12,
     },
     destructiveIconBg: {
-        backgroundColor: "#ffebee", // Light red bg
+        backgroundColor: "#ffebee",
     },
     settingText: {
         fontSize: 16,
@@ -225,14 +236,12 @@ const styles = StyleSheet.create({
     destructiveText: {
         color: "red",
     },
-    
     // Separator
     separator: {
         height: 1,
         backgroundColor: "#f0f0f0",
-        marginLeft: 64, // Να ξεκινάει μετά το εικονίδιο
+        marginLeft: 64,
     },
-
     versionText: {
         textAlign: 'center',
         color: '#aaa',
