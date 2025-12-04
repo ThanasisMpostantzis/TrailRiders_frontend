@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.2:8000/rides"; 
+const BASE_URL = "http://172.20.10.4:8000/rides"; 
 
 export interface Ride {
     id: number;

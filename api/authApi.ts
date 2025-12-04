@@ -1,8 +1,8 @@
 // authApi.ts
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.2:8000/auth";
-const URL = "http://192.168.1.2:8000";
+const BASE_URL = "http://172.20.10.4:8000/auth";
+const URL = "http://172.20.10.4:8000";
 
 // ---------- LOGIN ----------
 export async function loginApi(username: string, pwd: string) {
@@ -100,7 +100,47 @@ export async function updateProfileApi(payload: any) {
     const r = await axios.post(`${URL}/api/user/updateProfile`, payload, { headers: { "Content-Type": "application/json" }});
     return r.data; // should return { type:'success', user: {...} }
   } catch (e) {
-    console.log("updateProfile error", e);
+    console.log("updateProfile error ", e);
     return { type: "error", message: "Could not update profile" };
+  }
+}
+
+export async function deleteAccount(
+  userId: any,
+  userName: string,
+  confirmUsername: string
+ ) {
+  try {
+    const del = await axios.post(`${BASE_URL}/deleteUser`, {
+        "id": userId, 
+        "username": String(userName), 
+        "confirmUsername": String(confirmUsername)
+      }
+    );
+    return del.data; 
+  } catch (e: any) {
+    console.log("Delete user error: ", e.message);
+    return {type: "error", message: "Could not delete profile"};
+  }
+}
+
+export async function changePassword(
+  id: any,
+  oldPassword: string,
+  newPassword: string,
+  confirmPassword: string
+ ) {
+  try {
+    const del = await axios.post(`${BASE_URL}/changePassword`, {
+        "id": id, 
+        "oldPassword": String(oldPassword), 
+        "newPassword": String(newPassword),
+        "confirmNewPassword": String(confirmPassword)
+      },
+    );
+    return del.data; 
+  } catch (e: any) {
+    console.log("Change Password error: ", e.message);
+    return {type: "error", message: "Could not change password"};
   }
 }
