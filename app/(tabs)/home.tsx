@@ -93,7 +93,7 @@ const HomeScreen: React.FC = () => {
                 item.startLat, item.startLng,
                 item.endLat, item.endLng
             );
-            const roundTrip = oneWay * 2; // Πήγαινε - Έλα
+            const roundTrip = oneWay; //* 2 Πήγαινε - Έλα
             
             return `${roundTrip.toFixed(1)} km`;
         }

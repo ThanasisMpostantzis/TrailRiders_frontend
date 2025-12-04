@@ -27,8 +27,6 @@ import MapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView } from 'react-native-tab-view';
 
-const BASE_URL = "http://172.20.10.4:8000";
-
 // DROPDOWN OPTIONS
 const CATEGORIES = [
   "🏍️ Street / Naked",
@@ -242,7 +240,7 @@ export default function CreateRideScreen() {
     const totalMinutes = Math.round(rawTotalHours * 60);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    
+
     
     
     // Format "HH:mm"
@@ -296,7 +294,7 @@ export default function CreateRideScreen() {
       };
 
       console.log("Sending Payload:", payload);
-      await axios.post(`${BASE_URL}/rides/createRide`, payload);
+      await axios.post(`${process.env.URL}/rides/createRide`, payload);
       
       Alert.alert("Επιτυχία", "Το Ride δημιουργήθηκε!");
       router.back();

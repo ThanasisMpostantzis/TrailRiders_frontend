@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +12,7 @@ import {
   FlatList,
   Image,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,8 +20,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView } from 'react-native-tab-view';
-
-const BASE_URL = "http://172.20.10.4:8000";
 
 function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
@@ -40,6 +39,7 @@ export default function JoinRideScreen() {
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"nearby" | "all">(
     params.tab === 'all' ? 'all' : 'nearby'
   );
@@ -67,10 +67,16 @@ export default function JoinRideScreen() {
       console.log("Error fetching rides:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
+    fetchRides();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
     fetchRides();
   }, []);
 
@@ -80,7 +86,7 @@ export default function JoinRideScreen() {
       if (!userId) {
         return Alert.alert("Error", "You need to be logged in to join.");
       }
-      await axios.post(`${BASE_URL}/rides/joinRide`, {rideId, userId});
+      await axios.post(`${process.env.URL}/rides/joinRide`, {rideId, userId});
       Alert.alert("Joined!", "Μπήκες στο ride 👍");
       fetchRides();
     } catch {
@@ -159,6 +165,14 @@ export default function JoinRideScreen() {
         renderItem={renderRide}
         contentContainerStyle={{ paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#003366"
+          colors={["#003366"]}   // Android
+        />
+        }
         ListEmptyComponent={
           <Text style={{textAlign: 'center', marginTop: 20, color: '#888'}}>
             {route.key === 'nearby' && !userLocation ? "Locating..." : "No rides found."}
