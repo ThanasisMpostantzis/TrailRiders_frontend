@@ -1,61 +1,60 @@
-import * as Font from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 
-export default function Splash() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-  const progressAnim = useRef(new Animated.Value(0)).current; // useRef για να μην επαναδημιουργείται
+export default function Splash({ onFinish }: { onFinish: () => void }) {
+  const progressAnim = useRef(new Animated.Value(0)).current;
   const [progress, setProgress] = useState(0);
 
-  // Φόρτωση γραμματοσειράς
   useEffect(() => {
-    async function loadFonts() {
-      await Font.loadAsync({
-        'JacquesFrancoisShadow': require('@/assets/fonts/JacquesFrancoisShadow-Regular.ttf'),
-      });
-      setFontsLoaded(true);
+    if (progress >= 100) {
+      const timer = setTimeout(() => {
+         if (onFinish) onFinish();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-    loadFonts();
-  }, []);
+  }, [progress]);
 
-  // Προσομοίωση φόρτωσης assets/API με σταδιακό progress
   useEffect(() => {
-    const minTime = 1000; // minimum 1 δευτερόλεπτο
+    const minTime = 2000;
     const start = Date.now();
 
     let currentProgress = 0;
+    
     const interval = setInterval(() => {
-      currentProgress += 4;
+      currentProgress += 5;
       if (currentProgress > 100) currentProgress = 100;
+      
       setProgress(currentProgress);
+      
       Animated.timing(progressAnim, {
         toValue: currentProgress,
-        duration: 500,
+        duration: 200,
         easing: Easing.linear,
-        useNativeDriver: false,
+        useNativeDriver: false, 
       }).start();
 
       if (currentProgress >= 100) clearInterval(interval);
-    }, 50);
+    }, 100);
 
-    // Προσομοίωση φόρτωσης API/asset
     (async () => {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // assets/API
-      const elapsed = Date.now() - start;
-      const remaining = Math.max(minTime - elapsed, 0);
-      await new Promise(resolve => setTimeout(resolve, remaining));
-      setProgress(100);
+       await new Promise(resolve => setTimeout(resolve, 1500));
+       
+       const elapsed = Date.now() - start;
+       const remaining = Math.max(minTime - elapsed, 0);
+       await new Promise(resolve => setTimeout(resolve, remaining));
+       
+       setProgress(100); 
     })();
 
     return () => clearInterval(interval);
   }, []);
 
-  if (!fontsLoaded) return null;
-
   return (
     <View style={styles.container}>
-      <Image source={require('@/images/logo.webp')} style={styles.logo} />
+      <Image source={require('@/images/logo.webp')} style={styles.logo} /> 
+
       <Text style={styles.title}>Trail Riders Greece</Text>
+      
       <View style={styles.progressBackground}>
         <Animated.View
           style={[
