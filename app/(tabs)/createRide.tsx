@@ -294,7 +294,7 @@ export default function CreateRideScreen() {
       };
 
       console.log("Sending Payload:", payload);
-      await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/rides/createRide`, payload);
+      await axios.post(`${process.env.EXPO_PUBLIC_URL}/rides/createRide`, payload);
       
       Alert.alert("Επιτυχία", "Το Ride δημιουργήθηκε!");
       router.back();
