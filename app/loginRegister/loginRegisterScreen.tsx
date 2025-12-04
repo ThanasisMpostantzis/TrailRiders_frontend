@@ -7,7 +7,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function LoginRegisterScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
-  
+
   return (
     <View style={styles.container}>
       <StatusBar style={colorScheme === 'dark' ? 'dark' : 'light'}/>

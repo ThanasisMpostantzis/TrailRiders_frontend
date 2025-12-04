@@ -4,7 +4,7 @@ import axios from "axios";
 // ---------- LOGIN ----------
 export async function loginApi(username: string, pwd: string) {
   try {
-    const res = await axios.post(`${process.env.BASE_URL}/login`, {username, pwd});
+    const res = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/login`, {username, pwd});
     return res.data;
   } catch (err: any) {
     throw err.response?.data || err.message;
@@ -18,7 +18,7 @@ export async function signupApi(
   email?: string
 ) {
   try {
-    const res = await axios.post(`${process.env.BASE_URL}/signup`, {
+    const res = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/signup`, {
       username,
       pwd,
       email,
@@ -32,7 +32,7 @@ export async function signupApi(
 // ---------- FORGOT PASSWORD ----------
 export async function forgotPasswordApi(email: string) {
   try {
-    const res = await axios.post(`${process.env.BASE_URL}/forgotPassword/`, {
+    const res = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/forgotPassword/`, {
       email,
     });
     return res.data;
@@ -44,7 +44,7 @@ export async function forgotPasswordApi(email: string) {
 // ---------- RESET PASSWORD (GET HTML PAGE) ----------
 export async function resetPasswordPageApi(id: string, token: string) {
   try {
-    const res = await axios.get(`${process.env.BASE_URL}/resetPassword/${id}/${token}`);
+    const res = await axios.get(`${process.env.EXPO_PUBLIC_BASE_URL}/resetPassword/${id}/${token}`);
     return res.data; // HTML page
   } catch (err: any) {
     throw err.response?.data || err.message;
@@ -59,7 +59,7 @@ export async function resetPasswordApi(
 ) {
   try {
     const res = await axios.post(
-      `${process.env.BASE_URL}/resetPassword/${id}/${token}`,
+      `${process.env.EXPO_PUBLIC_BASE_URL}/resetPassword/${id}/${token}`,
       { password: newPassword }
     );
     return res.data;
@@ -76,7 +76,7 @@ export async function deleteUser(
 ) {
   try {
     const res = await axios.delete(
-      `${process.env.BASE_URL}/deleteUser/`,
+      `${process.env.EXPO_PUBLIC_BASE_URL}/deleteUser/`,
       {
         data: { 
           id, 
@@ -97,7 +97,7 @@ export async function deleteUser(
 // ---------- GET PROFILE INFO (user profile data) ----------
 export async function getProfileApi(userId: string) {
   try {
-    const r = await axios.get(`${process.env.URL}/api/user/${userId}`);
+    const r = await axios.get(`${process.env.EXPO_PUBLIC_URL}/api/user/${userId}`);
     const userData = r.data;
 
     // Αν tags υπάρχει, μετατρέπουμε σε array
@@ -118,7 +118,7 @@ export async function getProfileApi(userId: string) {
 export async function updateProfileApi(payload: any) {
   try {
     // payload.image and payload.cover are data URIs (data:image/...base64,...)
-    const r = await axios.post(`${process.env.URL}/api/user/updateProfile`, payload, { headers: { "Content-Type": "application/json" }});
+    const r = await axios.post(`${process.env.EXPO_PUBLIC_URL}/api/user/updateProfile`, payload, { headers: { "Content-Type": "application/json" }});
     return r.data; // should return { type:'success', user: {...} }
   } catch (e) {
     console.log("updateProfile error ", e);
@@ -132,7 +132,7 @@ export async function deleteAccount(
   confirmUsername: string
  ) {
   try {
-    const del = await axios.post(`${process.env.BASE_URL}/deleteUser`, {
+    const del = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/deleteUser`, {
         "id": userId, 
         "username": String(userName), 
         "confirmUsername": String(confirmUsername)
@@ -152,7 +152,7 @@ export async function changePassword(
   confirmPassword: string
  ) {
   try {
-    const del = await axios.post(`${process.env.BASE_URL}/changePassword`, {
+    const del = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/changePassword`, {
         "id": id, 
         "oldPassword": String(oldPassword), 
         "newPassword": String(newPassword),
