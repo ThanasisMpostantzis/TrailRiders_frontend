@@ -12,7 +12,11 @@ import {
   Image,
   Modal,
   Pressable,
-  ScrollView, StatusBar, StyleSheet,
+  SafeAreaView // Προσθήκη του SafeAreaView για σωστή απεικόνιση του Header
+  ,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -157,13 +161,19 @@ export default function ProfileScreen() {
   const displayName = profile.fullName || profile.username || storedUsername || "Rider";
 
   return (
-    <View style={styles.screen}>
+    // Χρήση SafeAreaView για να μοιάζει με το Notification screen style
+    <SafeAreaView style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      {/* HEADER: Τροποποιημένο για να είναι ίδιο με το Notification screen */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color="#003366" style={{paddingLeft: 10, padding: 10}}/></TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#003366" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 24 }} /> 
       </View>
+
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         {/* COVER & AVATAR */}
         <View style={styles.headerCard}>
@@ -223,14 +233,14 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Edit Modal */}
+      {/* Edit Modal - Παραμένει το ίδιο όπως ζητήθηκε */}
       <EditProfileModal
         visible={modalOpen}
         onClose={() => setModalOpen(false)}
         profile={profile}
         onSaved={onSave}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -404,6 +414,22 @@ function EditProfileModal({ visible, onClose, profile, onSaved } : {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#F6F7FB" },
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F6F7FB" },
+  
+  // HEADER STYLES (Τροποποιημένα)
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    height: 60,
+    zIndex: 10
+  },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#003366" },
+
   headerCard: { margin: 16, borderRadius: 16, overflow: "hidden", backgroundColor: "#fff", paddingBottom: 12, elevation: 4 },
   coverImage: { width: "100%", height: 160, resizeMode: "cover" },
   avatarRow: { flexDirection: "row", alignItems: "center", padding: 14, position: "relative" },
@@ -455,7 +481,4 @@ const styles = StyleSheet.create({
   tagOptionText: { fontSize: 16, color: '#333' },
   tagOptionSelected: { backgroundColor: '#f0f8ff' },
   closeTagsBtn: { marginTop: 15, backgroundColor: '#003366', padding: 12, borderRadius: 10, alignItems: 'center' },
-
-  header: { flexDirection: "row", justifyContent: "space-between", paddingTop: 40, alignItems: "center" },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#003366" },
 });

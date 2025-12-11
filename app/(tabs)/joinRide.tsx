@@ -86,7 +86,7 @@ export default function JoinRideScreen() {
       if (!userId) {
         return Alert.alert("Error", "You need to be logged in to join.");
       }
-      await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}/rides/joinRide`, {rideId, userId});
+      await axios.post(`${process.env.EXPO_PUBLIC_URL}/rides/joinRide`, {rideId, userId});
       Alert.alert("Joined!", "Μπήκες στο ride 👍");
       fetchRides();
     } catch {
