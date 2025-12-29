@@ -11,14 +11,26 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ChangeLanguageModal from "./changeLanguage";
 import DeleteAccountModal from "./deleteUser";
 
 export default function SettingsScreen() {
+    const LANGUAGE_LABELS: { [key: string]: string } = {
+        'el': 'Ελληνικά',
+        'en': 'English',
+        'de': 'Deutsch',
+        'it': 'Italiano',
+        'fr': 'Français'
+    };
+
     const router = useRouter();
     
     const [modalVisible, setModalVisible] = useState(false);
     const [username, setUsername] = useState('Loading...');
-    
+
+    const [currentLang, setCurrentLang] = useState('el');
+    const [changeLangVisible, setChangeLangVisible] = useState(false);
+
     const [pushEnabled, setPushEnabled] = useState(true);
 
     useEffect(() => {
@@ -133,8 +145,8 @@ export default function SettingsScreen() {
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="globe-outline" 
-                        title="Γλώσσα (Ελληνικά)" 
-                        onPress={() => console.log("Change Language")} 
+                        title={"Γλώσσα (" + LANGUAGE_LABELS[currentLang] + ")"} 
+                        onPress={() => setChangeLangVisible(true)} 
                     />
                     <View style={styles.separator} />
                     <SettingItem 
@@ -161,6 +173,17 @@ export default function SettingsScreen() {
                 </View>
 
                 <Text style={styles.versionText}>Version 1.0.0</Text>
+
+                <ChangeLanguageModal
+                    visible={changeLangVisible}
+                    onClose={() => setChangeLangVisible(false)}
+                    selectedLanguage={currentLang}
+                    onSelectLanguage={(langCode: any) => {
+                        setCurrentLang(langCode);
+                        // add logic για αποθήκευση στο AsyncStorage
+                        console.log("Η γλώσσα άλλαξε σε:", langCode);
+                    }}
+                />
 
             </ScrollView>
         </SafeAreaView>
