@@ -1,14 +1,12 @@
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-import * as AuthSession from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -23,22 +21,21 @@ export default function LoginRegisterScreen() {
   const colorScheme = useColorScheme();
 
   
-
- const redirectUri = AuthSession.makeRedirectUri({
-  scheme: 'yourapp',
-});
+  const redirectUri = "https://auth.expo.io/@grgktvgr/trailriders";
 
   console.log('REDIRECT URI =>', redirectUri);
 
+  console.log(EXPO_CLIENT_ID, "  ", ANDROID_CLIENT_ID, "  ", IOS_CLIENT_ID);
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: EXPO_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
-    iosClientId: IOS_CLIENT_ID,
-    scopes: ['profile', 'email'],
-    redirectUri,
-  });
+  // Χρησιμοποίησε το Web Client ID (rjbb)
+  clientId: "426736775262-rjbbs0f8mbatoagbnbii8gec7mvhep7v.apps.googleusercontent.com",
+  scopes: ['profile', 'email'],
+  // Χρησιμοποιούμε το ακριβές link που βάλαμε στη Google
+  redirectUri: "https://auth.expo.io/@grgktvgr/trailriders",
+});
 
   useEffect(() => {
+    
     const handleGoogleResponse = async () => {
       if (response?.type !== 'success') return;
 
@@ -71,7 +68,16 @@ export default function LoginRegisterScreen() {
         console.log('Google login error:', err);
       }
     };
+    console.log("--- ΕΛΕΓΧΟΣ RESPONSE ---");
+    console.log("Response Object:", response); // Δες αν έρχεται έστω και κενό object
 
+    if (response?.type === 'success') {
+      handleGoogleResponse();
+    } else if (response?.type === 'error') {
+      // Αυτό θα μας πει γιατί η Expo έβγαλε το "Something went wrong"
+      console.log("Σφάλμα από τον Proxy:", response.error);
+      console.log("Περισσότερες λεπτομέρειες:", response.params);
+    }
     handleGoogleResponse();
   }, [response]);
 
@@ -107,7 +113,7 @@ export default function LoginRegisterScreen() {
         <TouchableOpacity
           style={styles.googleBtn}
           disabled={!request}
-          onPress={() => promptAsync()}
+          onPress={() => promptAsync( {showInRecents: true })}
         >
           <Image
             source={require('@/images/google-logo.png')}
