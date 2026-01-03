@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Trail Riders Greece",
-    "slug": "trailRiders",
+    "name": "Trail Riders ",
+    "slug": "trailriders",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./images/logo.webp",
@@ -27,6 +27,7 @@
       "backgroundColor": "#DCDCDC"
     },
     "android": {
+      "package": "com.yourname.trailriders",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -60,6 +61,15 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "EXPO_PUBLIC_BASE_URL": "http://192.168.1.36:8000/auth",
+      "EXPO_PUBLIC_URL": "http://192.168.1.36:8000/",
+      "EXPO_PUBLIC_RIDES_URL": "http://192.168.1.36:8000/rides",
+      "router": {},
+      "eas": {
+        "projectId": "05ab3ee0-02e7-49c9-bdc1-be653cc18ceb"
+      }
     }
   }
 }

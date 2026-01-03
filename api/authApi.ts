@@ -97,7 +97,7 @@ export async function deleteUser(
 // ---------- GET PROFILE INFO (user profile data) ----------
 export async function getProfileApi(userId: string) {
   try {
-    const r = await axios.get(`${process.env.EXPO_PUBLIC_URL}/api/user/${userId}`);
+    const r = await axios.get(`${process.env.EXPO_PUBLIC_URL}api/user/${userId}`);
     const userData = r.data;
 
     // Αν tags υπάρχει, μετατρέπουμε σε array
@@ -118,7 +118,7 @@ export async function getProfileApi(userId: string) {
 export async function updateProfileApi(payload: any) {
   try {
     // payload.image and payload.cover are data URIs (data:image/...base64,...)
-    const r = await axios.post(`${process.env.EXPO_PUBLIC_URL}/api/user/updateProfile`, payload, { headers: { "Content-Type": "application/json" }});
+    const r = await axios.post(`${process.env.EXPO_PUBLIC_URL}api/user/updateProfile`, payload, { headers: { "Content-Type": "application/json" }});
     return r.data; // should return { type:'success', user: {...} }
   } catch (e) {
     console.log("updateProfile error ", e);

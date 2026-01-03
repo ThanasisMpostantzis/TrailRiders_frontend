@@ -12,9 +12,12 @@ export default ({ config }) => {
   return {
     ...config,
     extra: {
+
+      eas: {projectId: '05ab3ee0-02e7-49c9-bdc1-be653cc18ceb',},
       EXPO_PUBLIC_BASE_URL: BASE_URL,
       EXPO_PUBLIC_URL: APP_URL,
       EXPO_PUBLIC_RIDES_URL: RIDES_URL,
+      
     }
   };
 };
