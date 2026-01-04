@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Alert,
     ScrollView,
@@ -24,7 +25,7 @@ interface NotificationItem {
 
 export default function MenuScreen() {
     const router = useRouter();
-
+    const { t } = useTranslation();
     // 1. ΠΡΕΠΕΙ ΝΑ ΤΑ ΒΑΛΩ DB ΚΑΙ ΝΑ ΤΡΑΒΑΩ ΑΠΟ ΕΚΕΙ
     const [notifications, setNotifications] = useState<NotificationItem[]>([
         { id: 1, senderName: "Thanasis", description: "Thanasis has joined the ride via link.", date: "25-12-2025", time: "12:23", subject: "New Rider Joined", isRead: false },
@@ -48,8 +49,8 @@ export default function MenuScreen() {
 
     // Διαγραφή επιλεγμένων
     const deleteSelected = () => {
-        Alert.alert("Διαγραφή", "Είστε σίγουρος;", [
-            { text: "Άκυρο", style: "cancel" },
+        Alert.alert(t('notifications.delete'), t('notifications.areYouSure'), [
+            { text: t('notifications.cancel'), style: "cancel" },
             { 
                 text: "Ναι", 
                 onPress: () => {
@@ -102,7 +103,7 @@ export default function MenuScreen() {
                     <TouchableOpacity onPress={() => { setViewingNotification(null); setMenuVisible(false); }}>
                         <Ionicons name="arrow-back" size={24} color="#003366" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Λεπτομέρειες</Text>
+                    <Text style={styles.headerTitle}>{t('notifications.details')}</Text>
                     
                     <View>
                         <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
@@ -114,7 +115,7 @@ export default function MenuScreen() {
                             <View style={styles.popupMenu}>
                                 <TouchableOpacity style={styles.menuItem} onPress={deleteSingle}>
                                     <Ionicons name="trash-outline" size={20} color="red" />
-                                    <Text style={[styles.menuText, { color: 'red' }]}>Διαγραφή</Text>
+                                    <Text style={[styles.menuText, { color: 'red' }]}>{t('notifications.delete')}</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -131,7 +132,7 @@ export default function MenuScreen() {
                         <TouchableOpacity onPress={() => setSelectedIds([])}>
                             <Ionicons name="close" size={24} color="#003366" />
                         </TouchableOpacity>
-                        <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{selectedIds.length} Επιλέχθηκαν</Text>
+                        <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{selectedIds.length} {t('notifications.selected')}</Text>
                     </View>
                     <View style={styles.headerIcons}>
                         <TouchableOpacity onPress={() => markAs(true)} style={styles.iconBtn}>
@@ -154,7 +155,7 @@ export default function MenuScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#003366" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Ειδοποιήσεις</Text>
+                <Text style={styles.headerTitle}>{t('notifications.notifications')}</Text>
                 <View style={{ width: 24 }} /> 
             </View>
         );
@@ -178,7 +179,7 @@ export default function MenuScreen() {
                         
                         <View style={styles.divider} />
                         
-                        <Text style={styles.senderText}>Από: <Text style={{fontWeight: 'bold'}}>{viewingNotification.senderName}</Text></Text>
+                        <Text style={styles.senderText}>{t('notifications.from')} <Text style={{fontWeight: 'bold'}}>{viewingNotification.senderName}</Text></Text>
                         
                         <Text style={styles.detailDescription}>
                             {viewingNotification.description}
@@ -189,7 +190,7 @@ export default function MenuScreen() {
                 // --- LIST VIEW ---
                 <ScrollView style={styles.content}>
                     {notifications.length === 0 ? (
-                        <Text style={{textAlign: 'center', marginTop: 50, color: '#888'}}>Δεν υπάρχουν ειδοποιήσεις.</Text>
+                        <Text style={{textAlign: 'center', marginTop: 50, color: '#888'}}>{t('notifications.noNotifications')}</Text>
                     ) : (
                         notifications.map((item) => (
                             <TouchableOpacity 

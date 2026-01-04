@@ -5,6 +5,7 @@ import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -14,6 +15,10 @@ import {
   Pressable,
   SafeAreaView // Προσθήκη του SafeAreaView για σωστή απεικόνιση του Header
   ,
+
+
+
+
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -56,7 +61,7 @@ export default function ProfileScreen() {
   const [modalOpen, setModalOpen] = useState(false);
   const [storedUsername, setStoredUsername] = useState<string>("");
   const router = useRouter();
-
+  const { t } = useTranslation();
   useFocusEffect(
     useCallback(() => {
       loadProfile();
@@ -170,7 +175,7 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#003366" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={styles.headerTitle}>{t('editProfileMenu.editProfile')}</Text>
         <View style={{ width: 24 }} /> 
       </View>
 
@@ -201,17 +206,17 @@ export default function ProfileScreen() {
           {/* Stats */}
           <View style={styles.statsRow}>
             <View style={styles.stat}><Text style={styles.statValue}>{profile.km ?? 0}</Text><Text style={styles.statLabel}>km</Text></View>
-            <View style={styles.stat}><Text style={styles.statValue}>{profile.rides ?? 0}</Text><Text style={styles.statLabel}>Rides</Text></View>
-            <View style={styles.stat}><Text style={styles.statValue}>⭐</Text><Text style={styles.statLabel}>Achievements</Text></View>
+            <View style={styles.stat}><Text style={styles.statValue}>{profile.rides ?? 0}</Text><Text style={styles.statLabel}>{t('editProfileMenu.rides')}</Text></View>
+            <View style={styles.stat}><Text style={styles.statValue}>⭐</Text><Text style={styles.statLabel}>{t('editProfileMenu.achievements')}</Text></View>
           </View>
         </View>
 
         {/* Content */}
         <View style={styles.content}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>{t('editProfileMenu.about')}</Text>
           <Text style={styles.bioText}>{profile.bio || "Add a bio..."}</Text>
 
-          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Riding Style</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>{t('editProfileMenu.ridingStyle')}</Text>
           <View style={styles.tagWrap}>
             {(() => {
               const tagsData = profile.tags || [];
@@ -224,7 +229,7 @@ export default function ProfileScreen() {
             })()}
           </View>
 
-          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Recent Rides</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>{t('editProfileMenu.recentRides')}</Text>
           <View style={styles.recentCard}>
             <Text style={styles.recentTitle}>Thessaloniki → Ptolemaida</Text>
             <Text style={styles.recentMeta}>50 km • 2025-11-22</Text>
@@ -255,7 +260,7 @@ function EditProfileModal({ visible, onClose, profile, onSaved } : {
   const [local, setLocal] = useState<UserProfile>({ ...(profile || {}) });
   const [saving, setSaving] = useState(false);
   const [tagsModalVisible, setTagsModalVisible] = useState(false);
-
+  const { t } = useTranslation();
   useEffect(() => {
     if (!profile) return;
     let safeTags: string[] = [];
@@ -342,7 +347,7 @@ function EditProfileModal({ visible, onClose, profile, onSaved } : {
       <View style={styles.modal}>
         <View style={styles.modalHandle} />
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-          <Text style={styles.modalTitle}>Edit profile</Text>
+          <Text style={styles.modalTitle}>{t('editProfileMenu.editProfile')}</Text>
 
           <View style={styles.imagesEditContainer}>
             <TouchableOpacity style={styles.avatarEditWrapper} onPress={() => pickImage("avatar")}>
@@ -355,19 +360,19 @@ function EditProfileModal({ visible, onClose, profile, onSaved } : {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.fieldLabel}>Full name</Text>
-          <TextInput style={styles.input} value={local.fullName} onChangeText={(v) => setLocal({...local, fullName: v})} placeholder="Your Full Name" />
+          <Text style={styles.fieldLabel}>{t('editProfileMenu.fullName')}</Text>
+          <TextInput style={styles.input} value={local.fullName} onChangeText={(v) => setLocal({...local, fullName: v})} placeholder="Your Full Name"  placeholderTextColor={"#666"}/>
 
-          <Text style={styles.fieldLabel}>Bike model</Text>
-          <TextInput style={styles.input} value={local.bike} onChangeText={(v) => setLocal({...local, bike: v})} placeholder="eg. BMW M1000-XR" />
+          <Text style={styles.fieldLabel}>{t('editProfileMenu.bikeModel')}</Text>
+          <TextInput style={styles.input} value={local.bike} onChangeText={(v) => setLocal({...local, bike: v})} placeholder="eg. BMW M1000-XR" placeholderTextColor={"#666"}/>
 
-          <Text style={styles.fieldLabel}>Location</Text>
-          <TextInput style={styles.input} value={local.location} onChangeText={(v) => setLocal({...local, location: v})} placeholder="City, Country" />
+          <Text style={styles.fieldLabel}>{t('editProfileMenu.location')}</Text>
+          <TextInput style={styles.input} value={local.location} onChangeText={(v) => setLocal({...local, location: v})} placeholder="City, Country"  placeholderTextColor={"#666"}/>
 
           <Text style={styles.fieldLabel}>Bio</Text>
-          <TextInput style={[styles.input, { height: 80 }]} multiline value={local.bio} onChangeText={(v) => setLocal({...local, bio: v})} placeholder="Write a short bio" />
+          <TextInput style={[styles.input, { height: 80 }]} multiline value={local.bio} onChangeText={(v) => setLocal({...local, bio: v})} placeholder="Write a short bio"  placeholderTextColor={"#666"}/>
 
-          <Text style={styles.fieldLabel}>Riding Style</Text>
+          <Text style={styles.fieldLabel}>{t('editProfileMenu.ridingStyle')}</Text>
           <TouchableOpacity style={styles.dropdownButton} onPress={() => setTagsModalVisible(true)}>
              <Text style={{color: '#333', flex: 1}}>
                 {(local.tags && local.tags.length > 0) ? local.tags.join(", ") : "Select Riding Styles"}
@@ -376,9 +381,9 @@ function EditProfileModal({ visible, onClose, profile, onSaved } : {
           </TouchableOpacity>
 
           <View style={{ marginTop: 20, flexDirection: "row", justifyContent: "space-between" }}>
-            <Pressable style={styles.cancelBtn} onPress={onClose}><Text style={styles.cancelText}>Cancel</Text></Pressable>
+            <Pressable style={styles.cancelBtn} onPress={onClose}><Text style={styles.cancelText}>{t('editProfileMenu.cancel')}</Text></Pressable>
             <Pressable style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-              {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
+              {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>{t('editProfileMenu.save')}</Text>}
             </Pressable>
           </View>
         </ScrollView>

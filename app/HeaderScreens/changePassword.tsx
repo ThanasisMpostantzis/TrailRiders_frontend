@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Alert,
     KeyboardAvoidingView,
@@ -15,7 +16,6 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 
 interface PasswordInputProps {
     label: string;
@@ -63,7 +63,7 @@ export default function ChangePasswordScreen() {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
+    const { t } = useTranslation(); 
     const [showOldPass, setShowOldPass] = useState(false);
     const [showNewPass, setShowNewPass] = useState(false);
     const [showConfirmPass, setShowConfirmPass] = useState(false);
@@ -71,14 +71,14 @@ export default function ChangePasswordScreen() {
     const handleChangePassword = async () => {
         const id = await AsyncStorage.getItem("userId");
         if (!newPassword || !oldPassword || !confirmPassword) {
-            Alert.alert("Συμπλήρωσε όλα τα πεδία.")
+            Alert.alert(t('settings.changePass.fillAlert'))
         }
         if(newPassword !== confirmPassword) {
-            Alert.alert("Επιβέβαιωσε σωστά τον κωδικό.")
+            Alert.alert(t('settings.changePass.confirmAlert'))
         } else {
             const response = await changePassword(id, oldPassword, newPassword, confirmPassword);
             if (response && response.type === 'success') {
-                Alert.alert("Password changed Successfully");
+                Alert.alert(t('settings.changePass.successChange'));
                 router.replace("/(tabs)/home");
             } else {
                 throw new Error(response.message || "Unknown error occurred.");
@@ -105,11 +105,11 @@ return (
                     contentContainerStyle={{ paddingBottom: 40 }}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <Text style={styles.pageTitle}>Αλλαγή Κωδικού</Text>
-                    <Text style={styles.pageSubtitle}>Δημιουργήστε έναν ισχυρό κωδικό για την ασφάλειά σας.</Text>
+                    <Text style={styles.pageTitle}>{t('settings.changePassword')}</Text>
+                    <Text style={styles.pageSubtitle}>{t('settings.changePass.changePassText')}</Text>
                     <View style={styles.formContainer}>
                         <PasswordInput 
-                            label="Τρέχων Κωδικός"
+                            label={t('settings.changePass.currentPass')}
                             placeholder="••••••••"
                             value={oldPassword}
                             onChangeText={setOldPassword}
@@ -118,7 +118,7 @@ return (
                         />
 
                         <PasswordInput 
-                            label="Νέος Κωδικός"
+                            label={t('settings.changePass.newPass')}
                             placeholder="••••••••"
                             value={newPassword}
                             onChangeText={setNewPassword}
@@ -127,7 +127,7 @@ return (
                         />
 
                         <PasswordInput 
-                            label="Επιβεβαίωση Νέου Κωδικού"
+                            label={t('settings.changePass.confirmPass')}
                             placeholder="••••••••"
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
@@ -140,7 +140,7 @@ return (
                 {/* --- BUTTON --- */}
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.modernButton} onPress={() => handleChangePassword()}>
-                        <Text style={styles.modernButtonText}>Αποθήκευση</Text>
+                        <Text style={styles.modernButtonText}>{t('settings.changePass.save')}</Text>
                     </TouchableOpacity>
                 </View>
 

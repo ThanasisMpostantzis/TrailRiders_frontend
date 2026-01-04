@@ -5,6 +5,7 @@ import axios from 'axios';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -40,6 +41,7 @@ export default function JoinRideScreen() {
   const [loading, setLoading] = useState(true);
   const params = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<"nearby" | "all">(
     params.tab === 'all' ? 'all' : 'nearby'
   );
@@ -84,13 +86,13 @@ export default function JoinRideScreen() {
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) {
-        return Alert.alert("Error", "You need to be logged in to join.");
+        return Alert.alert(t('joinRide.alerts.error'), t('joinRide.alerts.errorLogin'));
       }
       await axios.post(`${process.env.EXPO_PUBLIC_URL}/rides/joinRide`, {rideId, userId});
-      Alert.alert("Joined!", "Μπήκες στο ride 👍");
+      Alert.alert(t('joinRide.alerts.joined'), t('joinRide.alerts.joinRide'));
       fetchRides();
     } catch {
-      Alert.alert("Info", "Είσαι ήδη μέλος ή υπήρξε σφάλμα.");
+      Alert.alert(t('joinRide.alerts.carefull'), t('joinRide.alerts.alreadyjoined'));
     }
   };
 
@@ -102,7 +104,7 @@ export default function JoinRideScreen() {
       if (userLocation && item.startLat && item.startLng) {
         const dist = getDistanceKm(userLocation.lat, userLocation.lng, item.startLat, item.startLng);
         const distString = dist < 1 ? `${(dist * 1000).toFixed(0)} m` : `${dist.toFixed(1)} km`;
-        infoText = `${distString} away`;
+        infoText = `${distString} ` + t('joinRide.away');
         iconName = "navigate-circle-outline";
       } else {
         infoText = "Calculating...";
@@ -111,7 +113,7 @@ export default function JoinRideScreen() {
     } else {
       if (item.startLat && item.startLng && item.endLat && item.endLng) {
         const oneWay = getDistanceKm(item.startLat, item.startLng, item.endLat, item.endLng);
-        infoText = `${(oneWay * 2).toFixed(1)} km route`;
+        infoText = `${(oneWay * 2).toFixed(1)} km ` + t('joinRide.route');
         iconName = "map-outline";
       } else if (item.rideDistance && item.rideDistance > 0) {
         infoText = `${item.rideDistance} km route`;
@@ -138,7 +140,7 @@ export default function JoinRideScreen() {
           </View>
         </View>
         <TouchableOpacity style={styles.joinButton} onPress={() => handleJoinRide(item.id)}>
-          <Text style={styles.joinText}>Join</Text>
+          <Text style={styles.joinText}>{t('joinRide.join')}</Text>
         </TouchableOpacity>
       </Pressable>
     );
@@ -185,7 +187,7 @@ export default function JoinRideScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Join Ride</Text>
+        <Text style={styles.headerTitle}>{t('joinRide.joinRide')}</Text>
         <View style={styles.headerIcons}>
           <Ionicons name="notifications-outline" size={24} color="black" onPress={() => router.push('/HeaderScreens/notifications')} />
           <Ionicons name="menu" size={26} color="black" style={{ marginLeft: 16 }} onPress={() => router.push('/HeaderScreens/menu')} />
@@ -197,13 +199,13 @@ export default function JoinRideScreen() {
           style={[styles.tabButton, selectedTab === "nearby" && styles.activeTab]}
           onPress={() => { setSelectedTab("nearby"); setIndex(0); }}
         >
-          <Text style={[styles.tabText, selectedTab === "nearby" && styles.activeTabText]}>Nearby Rides</Text>
+          <Text style={[styles.tabText, selectedTab === "nearby" && styles.activeTabText]}>{t('joinRide.nearbyRides')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === "all" && styles.activeTab]}
           onPress={() => { setSelectedTab("all"); setIndex(1); }}
         >
-          <Text style={[styles.tabText, selectedTab === "all" && styles.activeTabText]}>All Available</Text>
+          <Text style={[styles.tabText, selectedTab === "all" && styles.activeTabText]}>{t('joinRide.allAvailable')}</Text>
         </TouchableOpacity>
       </View>
 

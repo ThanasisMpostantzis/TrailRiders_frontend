@@ -1,0 +1,164 @@
+{
+    "home": {
+        "change_lang": "Αλλαγή Γλώσσας",
+        "welcome": "Καλώς Όρισες",
+        "whereToNext": "Επόμενος Προορισμός;",
+        "featuredRides": "Δημοφιλείς Διαδρομές",
+        "seeAll": "Προβολή Όλων",
+        "away": "μακρυά",
+        "minutes": "λεπτά",
+        "details": "Λεπτομέρειες",
+        "recommended": "Προτεινόμενες Διαδρομές",
+        "home": "Αρχική",
+        "joinRideMenu": "Συμμετοχή",
+        "createRide": "Δημιουργία"
+    },
+    "joinRide": {
+        "joinRide": "Συμμετοχή σε διαδρομή",
+        "nearbyRides": "Διαδρομές κοντά μου",
+        "allAvailable": "Όλες οι διαδρομές",
+        "join": "Συμμετοχή",
+        "away": "μακρυά",
+        "route": "διαδρομή",
+        "organizer": "Διοργανωτής",
+        "date": "Ημερομηνία",
+        "time": "Ώρα",
+        "expectedTime": "Εκτιμώμενη ώρα",
+        "category": "Κατηγορία",
+        "difficulty": "Δυσκολία",
+        "type": "Τύπος Διαδρομής",
+        "description": "Περιγραφή",
+        "stops": "Στάσεις",
+        "routeCaps": "Διαδρομή",
+        "alerts": {
+            "errorLogin": "Χρειάζεται να συνδεθείς για να συμμετάσχεις.",
+            "joinRide": "Μπήκες στο ride 👍",
+            "alreadyJoined": "Είσαι ήδη μέλος ή υπήρξε σφάλμα.",
+            "error": "Πρόβλημα.",
+            "joined": "Joined!",
+            "carefull": "Προσοχή."
+        }
+    },
+    "createRide": {
+        "createNewRide": "Δημιουργία Νέας Διαδρομής",
+        "general": "Γενικά",
+        "rideTitle": "Τίτλος",
+        "rideAndMap": "Διαδρομή & Χάρτης",
+        "dateTime": "Ημερομηνία & Ώρα",
+        "category": "Κατηγορία Οχήματος",
+        "rideImage": "Εικόνα Διαδρομής",
+        "description": "Περιγραφή",
+        "next": "Επόμενο",
+        "rideMap": "Χάρτης Διαδρομής",
+        "start": "Εκκίνηση",
+        "addStops": "Πρόσθεσε Στάση",
+        "finish": "Τερματισμός",
+        "startPoint": "Σημείο Εκκίνησης",
+        "stopsPoint": "Ενδιάμεσες Στάσεις",
+        "finishPoint": "Τερματισμός",
+        "difficulty": "Δυσκολία",
+        "groundType": "Τύπος Εδάφους",
+        "createRide": "ΔΗΜΙΟΥΡΓΙΑ ΔΙΑΔΡΟΜΗΣ",
+        "deleteImage": "Διαγραφή Εικόνας",
+        "close": "Κλείσιμο",
+        "selectGroundType": "Επίλεξε Τύπο Εδάφους",
+        "selectDifficulty": "Επίλεξε Τύπο Δυσκολίας",
+        "placeHolder": {
+            "imageUpload": "Πάτα για ανέβασμα εικόνας",
+            "titlePlaceholder": "π.χ Κυριακάτικη Βόλτα",
+            "dateTimePlaceholder": "Επίλεξε Ημερομηνία & Ώρα",
+            "categoryPlaceholder": "Κατηγορία Μηχανής",
+            "descriptionPlaceholder": "Γράψε κάποιες λεπτομέρειες για την διαδρομή σου...",
+            "notSelected": "Δεν επιλέχθηκε",
+            "select": "Επίλεξε",
+            "selectCategory": "Επίλεξε Κατηγορία"
+        },
+        "alert": {
+            "startPoint": "Σημείο Εκκίνησης",
+            "finishPoint": "Σημείο Τερματισμού",
+            "carefull": "Προσοχή.",
+            "addTitle": "Συμπλήρωσε Τίτλο.",
+            "addStartPoints": "Συμπλήρωσε Start Point.",
+            "addDate": "Συμπλήρωσε Ημερομηνία",
+            "success": "Επιτυχία",
+            "rideSuccess": "Το Ride Δημιουργήθηκε!",
+            "error": "Σφάλμα",
+            "somethingGoneWrong": "Κάτι πήγε στραβά."
+        }
+    },
+    "settings": {
+        "settings": "Ρυθμίσεις",
+        "accountCaps": "ΛΟΓΑΡΙΑΣΜΟΣ",
+        "editProfile": "Επεξεργασία Προφίλ",
+        "changePassword": "Αλλαγή Κωδικού",
+        "deleteAccount": "Διαγραφή Λογαριασμού",
+        "appCaps": "ΕΦΑΡΜΟΓΗ",
+        "other": "ΑΛΛΑ",
+        "language": "Γλώσσα",
+        "measureUnits": "Μονάδες Μέτρησης",
+        "helpAndSupport": "Βοήθεια & Υποστήριξη",
+        "logout": "Αποσύνδεση",
+        "changePass": {
+            "changePassText": "Δημιουργήστε έναν ισχυρό κωδικό για την ασφάλεια σας.",
+            "currentPass": "Τρέχων Κωδικός",
+            "newPass": "Νέος Κωδικός",
+            "confirmPass": "Επιβεβαίωση Νέου Κωδικού",
+            "save": "Αποθήκευση",
+            "fillAlert": "Συμπλήρωσε όλα τα πεδία.",
+            "confirmAlert": "Επιβεβαίωσε σωστά τον κωδικό.",
+            "successChange": "Ο κωδικός άλλαξε επιτυχώς."
+        },
+        "deleteAcc": {
+            "deleteTitle": "Οριστική Διαγραφή Λογαριασμού",
+            "deleteText": "Για λόγους ασφαλείας, πληκτρολογήστε το όνομα χρήστη σας ",
+            "deletetext2": "για επιβεβαίωση. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+            "userName": "Όνομα Χρήστη",
+            "cancel": "Ακύρωση",
+            "delete": "Διαγραφή",
+            "error": "Σφάλμα",
+            "usernameErrorAlert": "Το όνομα χρήστη που πληκτρολογήσατε δεν ταιριάζει.",
+            "success": "Επιτυχία",
+            "successDelete": "Ο λογαριασμός διαγράφηκε επιτυχώς.",
+            "fail": "Αποτυχία",
+            "failAlert": "Δεν ήταν δυνατή η διαγραφή. Δοκιμάστε ξανά."
+        }
+    },
+    "notifications": {
+        "notifications": "Ειδοποιήσεις",
+        "from": "Από:",
+        "selected": "Επιλέχθηκαν",
+        "delete": "Διαγραφή",
+        "areYouSure": "Είστε σίγουρος;",
+        "cancel": "Άκυρο",
+        "yes": "Ναι",
+        "details": "Λεπτομέρειες",
+        "noNotifications": "Δεν υπάρχουν Ειδοποιήσεις."
+    },
+    "editProfileMenu": {
+        "editProfile": "Επεξεργασία Προφίλ",
+        "rides": "Διαδρομές",
+        "achievements": "Επιτεύματα",
+        "about": "Σχετικά",
+        "ridingStyle": "Στύλ Οδήγησης",
+        "recentRides": "Πρόσφατες Διαδρομές",
+        "fullName": "Ονοματεπώνυμο",
+        "fullNameText": "Το Ονοματεπώνυμο σας.",
+        "bikeModel": "Μοντέλο Οχήματος",
+        "location": "Τοποθεσία",
+        "bioText": "Γράψτε λίγα λόγια για εσάς...",
+        "cancel": "Ακύρωση",
+        "save": "Αποθήκευση"
+    },
+    "login": {
+
+    },
+    "register": {
+
+    },
+    "loginRegister": {
+
+    },
+    "forgotPassword": {
+
+    }
+}

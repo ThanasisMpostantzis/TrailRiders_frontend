@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   BackHandler,
@@ -44,6 +45,8 @@ const HomeScreen: React.FC = () => {
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
+  const { t } = useTranslation();
+
     // 1. GET USER LOCATION
     useEffect(() => {
       (async () => {
@@ -171,7 +174,7 @@ const HomeScreen: React.FC = () => {
               <Image source={image ? {uri: image } : require('@/images/logo.webp')} style={styles.profileImage} />
             </TouchableOpacity>
             <View>
-                <Text style={styles.greetingText}>Welcome back,</Text>
+                <Text style={styles.greetingText}>{t('home.welcome')},</Text>
                 <Text style={styles.appName}>{username}</Text>
             </View>
           </View>
@@ -192,7 +195,7 @@ const HomeScreen: React.FC = () => {
                 <Ionicons name="search-outline" size={20} color="#003366" />
                 <TextInput 
                     style={styles.searchInput} 
-                    placeholder="Where to next?" 
+                    placeholder={t('home.whereToNext')} 
                     placeholderTextColor="#999" 
                 />
                 <TouchableOpacity style={styles.filterButton}>
@@ -214,8 +217,8 @@ const HomeScreen: React.FC = () => {
         
         {/* Featured Rides */}
         <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Rides</Text>
-            <TouchableOpacity><Text style={styles.seeAllText} onPress={() => router.push({ pathname: '/joinRide', params: { tab: 'all' } })}>See All</Text></TouchableOpacity>
+            <Text style={styles.sectionTitle}>{t('home.featuredRides')}</Text>
+            <TouchableOpacity><Text style={styles.seeAllText} onPress={() => router.push({ pathname: '/joinRide', params: { tab: 'all' } })}>{t('home.seeAll')}</Text></TouchableOpacity>
         </View>
 
         <ScrollView 
@@ -238,7 +241,7 @@ const HomeScreen: React.FC = () => {
                   />
                   <View style={styles.distanceBadge}>
                       <Ionicons name="location-sharp" size={10} color="#fff" />
-                      <Text style={styles.distanceText}>{getAwayDistance(ride)} away</Text>
+                      <Text style={styles.distanceText}>{getAwayDistance(ride)} {t('home.away')}</Text>
                   </View>
               </View>
 
@@ -257,13 +260,13 @@ const HomeScreen: React.FC = () => {
                           </View>
                           <View style={styles.infoRow}>
                               <Ionicons name="time-outline" size={14} color="#666" />
-                              <Text style={styles.infoText}>{ride.expectedTime + " minutes"|| '2hours'}</Text>
+                              <Text style={styles.infoText}>{ride.expectedTime + " " + t('home.minutes')|| '2hours'}</Text>
                           </View>
                       </View>
 
                       {/* RIGHT COLUMN: DetailsButton */}
                       <View style={styles.miniButton}>
-                          <Text style={styles.miniButtonText}>Details</Text>
+                          <Text style={styles.miniButtonText}>{t('home.details')}</Text>
                           <Ionicons name="chevron-forward" size={14} color="#fff" />
                       </View>
 
@@ -275,7 +278,7 @@ const HomeScreen: React.FC = () => {
 
         {/* Recommended List */}
         <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended</Text>
+            <Text style={styles.sectionTitle}>{t('home.recommended')}</Text>
         </View>
         
         {rides.slice(0, 3).map((ride, index) => (

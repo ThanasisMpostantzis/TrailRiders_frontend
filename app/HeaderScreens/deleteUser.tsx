@@ -2,6 +2,7 @@ import { deleteAccount } from "@/api/authApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     Alert,
@@ -23,10 +24,10 @@ export default function DeleteAccountModal({ isVisible, onClose, currentUsername
     const router = useRouter();
     const [confirmUsername, setConfirmUsername] = useState('');
     const [loading, setLoading] = useState(false);
-
+    const { t } = useTranslation();
     const performDeletion = async () => {
         if (confirmUsername !== currentUsername) {
-            Alert.alert("Σφάλμα", "Το όνομα χρήστη που πληκτρολογήσατε δεν ταιριάζει.");
+            Alert.alert(t('settings.deleteAcc.error'), t('settings.deleteAcc.usernameErrorAlert'));
             return;
         }
 
@@ -40,7 +41,7 @@ export default function DeleteAccountModal({ isVisible, onClose, currentUsername
             const response = await deleteAccount(userId, currentUsername, confirmUsername);
             console.log(userId, currentUsername, confirmUsername);
             if (response && response.type === 'success') {
-                 Alert.alert("Επιτυχία", "Ο λογαριασμός διαγράφηκε επιτυχώς.");
+                 Alert.alert(t('settings.deleteAcc.success'), t('settings.deleteAcc.successDelete'));
                  await AsyncStorage.clear();
                  router.replace("/loginRegister/loginRegisterScreen");
             } else {
@@ -49,7 +50,7 @@ export default function DeleteAccountModal({ isVisible, onClose, currentUsername
 
         } catch (error) {
             console.error("Error deleting account:", error);
-            Alert.alert("Αποτυχία", "Δεν ήταν δυνατή η διαγραφή. Δοκιμάστε ξανά.");
+            Alert.alert(t('settings.deleteAcc.fail'), t('settings.deleteAcc.failAlert'));
         } finally {
             setLoading(false);
             onClose(); // Κλείνει το modal
@@ -65,15 +66,14 @@ export default function DeleteAccountModal({ isVisible, onClose, currentUsername
         >
             <View style={styles.centeredView}>
                 <View style={styles.modalView}>
-                    <Text style={styles.modalTitle}>Οριστική Διαγραφή Λογαριασμού</Text>
+                    <Text style={styles.modalTitle}>{t('settings.deleteAcc.deleteTitle')}</Text>
                     <Text style={styles.modalText}>
-                        Για λόγους ασφαλείας, πληκτρολογήστε το όνομα χρήστη σας ({currentUsername}) για επιβεβαίωση. 
-                        Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.
+                        {t('settings.deleteAcc.deleteText')} ({currentUsername}) {t('settings.deleteAcc.deleteText2')}
                     </Text>
 
                     <TextInput
                         style={styles.input}
-                        placeholder="Όνομα Χρήστη"
+                        placeholder={t('settings.deleteAcc.userName')}
                         placeholderTextColor="#A0A5B9"
                         value={confirmUsername}
                         onChangeText={setConfirmUsername}
@@ -88,7 +88,7 @@ export default function DeleteAccountModal({ isVisible, onClose, currentUsername
                             onPress={onClose}
                             disabled={loading}
                         >
-                            <Text style={styles.cancelText}>Ακύρωση</Text>
+                            <Text style={styles.cancelText}>{t('settings.deleteAcc.cancel')}</Text>
                         </TouchableOpacity>
 
                         {/* Διαγραφή */}
@@ -100,7 +100,7 @@ export default function DeleteAccountModal({ isVisible, onClose, currentUsername
                             {loading ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={styles.deleteText}>Διαγραφή</Text>
+                                <Text style={styles.deleteText}>{t('settings.deleteAcc.delete')}</Text>
                             )}
                         </TouchableOpacity>
                     </View>

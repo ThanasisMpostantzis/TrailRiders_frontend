@@ -2,6 +2,7 @@ import { getRideById, Ride } from "@/api/ridesApi"; // Το API σου
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Image,
@@ -15,7 +16,7 @@ import {
 export default function RideDetailsScreen() {
   const { id } = useLocalSearchParams(); // Πιάνουμε το ID από το url
   const router = useRouter();
-  
+  const { t } = useTranslation();
   const [ride, setRide] = useState<Ride | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -72,46 +73,46 @@ export default function RideDetailsScreen() {
         
         <View style={styles.infoRow}>
             <Ionicons name="person" size={18} color="#555"/>
-            <Text style={styles.infoText}>Organizer: {ride.organizer}</Text>
+            <Text style={styles.infoText}>{t('joinRide.organizer')}: {ride.organizer}</Text>
         </View>
 
         <View style={styles.infoRow}>
             <Ionicons name="calendar" size={18} color="#555"/>
-            <Text style={styles.infoText}>Date: {ride.date}</Text>
+            <Text style={styles.infoText}>{t('joinRide.date')}: {ride.date}</Text>
         </View>
 
         <View style={styles.infoRow}>
             <Ionicons name="location" size={18} color="#555"/>
-            <Text style={styles.infoText}>Route: {ride.startLocation} ➝ {ride.finishLocation}</Text>
+            <Text style={styles.infoText}>{t('joinRide.routeCaps')}: {ride.startLocation} ➝ {ride.finishLocation}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Ionicons name="time" size={18} color="#555"/>
-          <Text style={styles.infoText}>Expected time: {ride.expectedTime} minutes</Text>
+          <Text style={styles.infoText}>{t('joinRide.expectedTime')}: {ride.expectedTime} minutes</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Ionicons name="bicycle-outline" size={18} color="#555"/>
-          <Text style={styles.infoText}>Category: {ride.category}</Text>
+          <Text style={styles.infoText}>{t('joinRide.category')}: {ride.category}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Ionicons name="flame-outline" size={18} color="#555"/>
-          <Text style={styles.infoText}>Difficulty: {ride.difficulty}</Text>
+          <Text style={styles.infoText}>{t('joinRide.difficulty')}: {ride.difficulty}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Ionicons name="trail-sign-outline" size={18} color="#555"/>
-          <Text style={styles.infoText}>Ride Type: {ride.rideType}</Text>
+          <Text style={styles.infoText}>{t('joinRide.type')}: {ride.rideType}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Description</Text>
+        <Text style={styles.sectionTitle}>{t('joinRide.description')}</Text>
         <Text style={styles.description}>{ride.description}</Text>
 
         {/* Εδώ εμφανίζουμε τα Stops αν υπάρχουν */}
         {ride.stops && ride.stops.length > 0 && (
             <View>
-                <Text style={styles.sectionTitle}>Stops</Text>
+                <Text style={styles.sectionTitle}>{t('joinRide.stops')}</Text>
                 {ride.stops.map((stop, index) => (
                     <Text key={index} style={styles.stopText}>• {stop}</Text>
                 ))}
@@ -119,7 +120,7 @@ export default function RideDetailsScreen() {
         )}
 
         <View style={styles.miniButton}>
-          <Text style={styles.miniButtonText}>Join Ride</Text>
+          <Text style={styles.miniButtonText}>{t('joinRide.joinRide')}</Text>
           <Ionicons name="chevron-forward" size={14} color="#fff" />
         </View>
       </View>

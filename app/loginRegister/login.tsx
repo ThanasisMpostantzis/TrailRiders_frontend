@@ -22,7 +22,7 @@ export default function Login() {
             
             await AsyncStorage.setItem('username', response.user.username || "");
             await AsyncStorage.setItem('userId', String(response.user.id)); 
-            await AsyncStorage.setItem('userEmail', response.user.email.trim() || "");
+            await AsyncStorage.setItem('userEmail', response.user.email || "");
             await AsyncStorage.setItem('image', response.user.image || "");
             
             console.log("User ID saved:", response.user.id);

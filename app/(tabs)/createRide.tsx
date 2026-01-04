@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -63,12 +64,12 @@ export default function CreateRideScreen() {
   const router = useRouter();
   const layout = useWindowDimensions();
   const [loading, setLoading] = useState(false);
-
+  const { t } = useTranslation();
   // Tabs
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: 'general', title: 'Γενικά' },
-    { key: 'route', title: 'Διαδρομή & Χάρτης' },
+    { key: 'general', title: t('createRide.general') },
+    { key: 'route', title: t('createRide.rideAndMap') },
   ]);
 
   // Map States
@@ -182,10 +183,10 @@ export default function CreateRideScreen() {
 
     if (selectionMode === 'start') {
       setStartPoint(newPoint);
-      Alert.alert("Start Point", addressName);
+      Alert.alert(t('createRide.alert.startPoint'), addressName);
     } else if (selectionMode === 'finish') {
       setFinishPoint(newPoint);
-      Alert.alert("Finish Point", addressName);
+      Alert.alert(t('createRide.alert.finishPoint'), addressName);
     } else if (selectionMode === 'stop') {
       setStopsList(prev => [...prev, newPoint]);
     }
@@ -258,9 +259,9 @@ export default function CreateRideScreen() {
   };
 
   const handleCreateRide = async () => {
-    if (!form.title) return Alert.alert("Προσοχή", "Συμπλήρωσε Τίτλο.");
-    if (!startPoint) return Alert.alert("Προσοχή", "Συμπλήρωσε Start Point.");
-    if (!formattedDateString) return Alert.alert("Προσοχή", "Συμπλήρωσε Ημερομηνία.");
+    if (!form.title) return Alert.alert(t('createRide.carefull'), t('createRide.alert.addTitle'));
+    if (!startPoint) return Alert.alert(t('createRide.alert.carefull'), t('createRide.alert.addStartPoints'));
+    if (!formattedDateString) return Alert.alert(t('createRide.alert.carefull'), t('createRide.alert.addDate'));
 
     setLoading(true);
     try {
@@ -296,11 +297,11 @@ export default function CreateRideScreen() {
       console.log("Sending Payload:", payload);
       await axios.post(`${process.env.EXPO_PUBLIC_URL}/rides/createRide`, payload);
       
-      Alert.alert("Επιτυχία", "Το Ride δημιουργήθηκε!");
+      Alert.alert(t('createRide.alert.success'), t('createRide.alert.rideSuccess'));
       router.back();
     } catch (error) {
       console.log("Create Error:", error);
-      Alert.alert("Σφάλμα", "Κάτι πήγε στραβά.");
+      Alert.alert(t('createRide.alert.error'), t('createRide.alert.somethingGoneWrong'));
     } finally {
       setLoading(false);
     }
@@ -312,61 +313,63 @@ export default function CreateRideScreen() {
       case 'general':
         return (
           <ScrollView style={styles.sceneScroll} contentContainerStyle={styles.sceneContent}>
-            <Text style={styles.label}>Τίτλος Ride *</Text>
+            <Text style={styles.label}>{t('createRide.rideTitle')} *</Text>
             <TextInput 
               style={styles.input} 
-              placeholder="π.χ. Κυριακάτικη Βόλτα" 
+              placeholder={t('createRide.placeHolder.titlePlaceholder')} 
               value={form.title} 
               onChangeText={(t) => setForm(prev => ({...prev, title: t}))} 
             />
 
-            <Text style={styles.label}>Ημερομηνία & Ώρα *</Text>
+            <Text style={styles.label}>{t('createRide.dateTime')} *</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dropdownButton}>
               <Text style={formattedDateString ? styles.inputText : styles.placeholderText}>
-                {formattedDateString || "Επίλεξε Ημερομηνία & Ώρα"}
+                {formattedDateString || t('createRide.placeHolder.dateTimePlaceholder') }
               </Text>
               <Ionicons name="calendar-outline" size={20} color="#666" />
             </TouchableOpacity>
 
-            <Text style={styles.label}>Κατηγορία Μηχανής</Text>
+            <Text style={styles.label}>{t('createRide.category')}</Text>
             <TouchableOpacity 
               style={styles.dropdownButton} 
-              onPress={() => openModal('category', 'Επίλεξε Κατηγορία', CATEGORIES)}
+              onPress={() => openModal('category', t('createRide.placeHolder.selectCategory') , CATEGORIES)}
             >
               <Text style={form.category ? styles.inputText : styles.placeholderText}>
-                {form.category || "Επίλεξε τύπο μηχανής"}
+                {form.category || t('createRide.placeHolder.categoryPlaceholder')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
 
-            <Text style={styles.label}>Εικόνα Ride</Text>
+            <Text style={styles.label}>{t('createRide.rideImage')}</Text>
             <TouchableOpacity onPress={pickImage} style={styles.imagePickerBtn}>
               {form.image ? (
                 <Image source={{ uri: form.image }} style={styles.previewImage} />
               ) : (
                 <View style={styles.placeholderContainer}>
                   <Ionicons name="camera-outline" size={40} color="#666" />
-                  <Text style={styles.placeholderImageText}>Πάτα για upload εικόνας</Text>
+                  <Text style={styles.placeholderImageText}>{t('createRide.placeHolder.imageUpload')}</Text>
                 </View>
               )}
             </TouchableOpacity>
             
             {form.image ? (
               <TouchableOpacity onPress={() => setForm(prev => ({...prev, image: ''}))} style={{alignSelf:'flex-end', marginBottom: 15}}>
-                <Text style={{color: 'red', fontSize: 12}}>✖ Διαγραφή Εικόνας</Text>
+                <Text style={{color: 'red', fontSize: 12}}>✖ {t('createRide.deleteImage')} </Text>
               </TouchableOpacity>
             ) : null}
 
-            <Text style={styles.label}>Περιγραφή</Text>
+            <Text style={styles.label}>{t('createRide.description')}</Text>
             <TextInput 
               style={[styles.input, { height: 80 }]} 
-              multiline placeholder="Γράψε κάποιες λεπτομέρεις για την διαδρομή σου..." 
+              multiline 
+              placeholder={t('createRide.placeHolder.descriptionPlaceholder')}
+              placeholderTextColor={"#666"}
               value={form.description} 
               onChangeText={(t) => setForm(prev => ({...prev, description: t}))} 
             />
 
             <TouchableOpacity style={styles.nextButton} onPress={() => setIndex(1)}>
-              <Text style={styles.nextButtonText}>Επόμενο &gt;</Text>
+              <Text style={styles.nextButtonText}>{t('createRide.next')} &gt;</Text>
             </TouchableOpacity>
           </ScrollView>
         );
@@ -374,35 +377,35 @@ export default function CreateRideScreen() {
       case 'route':
         return (
           <ScrollView style={styles.sceneScroll} contentContainerStyle={styles.sceneContent}>
-            <Text style={styles.sectionHeader}>Χάρτης Διαδρομής</Text>
+            <Text style={styles.sectionHeader}>{t('createRide.rideMap')}</Text>
             <View style={styles.mapContainer}>
               <MapView style={styles.map} region={mapRegion} showsUserLocation={true} onPress={handleMapPress}>
-                {startPoint && <Marker coordinate={startPoint} pinColor="green" title="Start" />}
-                {finishPoint && <Marker coordinate={finishPoint} pinColor="red" title="Finish" />}
+                {startPoint && <Marker coordinate={startPoint} pinColor="green" title={t('createRide.start')} />}
+                {finishPoint && <Marker coordinate={finishPoint} pinColor="red" title={t('createRide.finish')} />}
                 {stopsList.map((stop, i) => (
-                  <Marker key={i} coordinate={stop} pinColor="blue" title={`Stop ${i+1}`} />
+                  <Marker key={i} coordinate={stop} pinColor="blue" title={`${t('createRide.addStops')} ${i + 1}`} />
                 ))}
               </MapView>
             </View>
 
             <View style={styles.selectorContainer}>
               <TouchableOpacity style={[styles.selectorBtn, selectionMode === 'start' && styles.btnStartActive]} onPress={() => setSelectionMode('start')}>
-                <Text style={[styles.selectorText, selectionMode === 'start' && styles.textWhite]}>📍 Start</Text>
+                <Text style={[styles.selectorText, selectionMode === 'start' && styles.textWhite]}>📍 {t('createRide.start')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.selectorBtn, selectionMode === 'stop' && styles.btnStopActive]} onPress={() => setSelectionMode('stop')}>
-                <Text style={[styles.selectorText, selectionMode === 'stop' && styles.textWhite]}>➕ Add Stop</Text>
+                <Text style={[styles.selectorText, selectionMode === 'stop' && styles.textWhite]}>➕ {t('createRide.addStops')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.selectorBtn, selectionMode === 'finish' && styles.btnFinishActive]} onPress={() => setSelectionMode('finish')}>
-                <Text style={[styles.selectorText, selectionMode === 'finish' && styles.textWhite]}>🏁 Finish</Text>
+                <Text style={[styles.selectorText, selectionMode === 'finish' && styles.textWhite]}>🏁 {t('createRide.finish')}</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Σημείο Εκκίνησης</Text>
-            <View style={styles.readOnlyInput}><Text>{startPoint?.name || "Δεν επιλέχθηκε"}</Text></View>
+            <Text style={styles.label}>{t('createRide.startPoint')}</Text>
+            <View style={styles.readOnlyInput}><Text>{startPoint?.name || t('createRide.placeHolder.notSelected')}</Text></View>
             
             {stopsList.length > 0 && (
               <View style={{marginBottom: 15}}>
-                 <Text style={styles.label}>Ενδιάμεσες Στάσεις ({stopsList.length})</Text>
+                 <Text style={styles.label}>{t('createRide.stopPoints')} ({stopsList.length})</Text>
                  {stopsList.map((stop, i) => (
                    <View key={i} style={styles.stopItem}>
                      <Text style={styles.stopText}>
@@ -416,30 +419,30 @@ export default function CreateRideScreen() {
               </View>
             )}
 
-            <Text style={styles.label}>Τερματισμός</Text>
-            <View style={styles.readOnlyInput}><Text>{finishPoint?.name || "Δεν επιλέχθηκε"}</Text></View>
+            <Text style={styles.label}>{t('createRide.finish')}</Text>
+            <View style={styles.readOnlyInput}><Text>{finishPoint?.name || t('createRide.placeHolder.notSelected')}</Text></View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
               <View style={{ width: '48%' }}>
-                <Text style={styles.label}>Δυσκολία</Text>
+                <Text style={styles.label}>{t('createRide.difficulty')}</Text>
                 <TouchableOpacity 
                   style={styles.dropdownButton} 
-                  onPress={() => openModal('difficulty', 'Επίλεξε Δυσκολία', DIFFICULTIES)}
+                  onPress={() => openModal('difficulty', t('createRide.selectDifficulty'), DIFFICULTIES)}
                 >
                    <Text numberOfLines={1} style={form.difficulty ? {color:'#000', fontSize:13} : {color:'#999', fontSize:13}}>
-                     {form.difficulty || "Select"}
+                     {form.difficulty || t('createRide.placeHolder.select')}
                    </Text>
                    <Ionicons name="chevron-down" size={16} color="#666" />
                 </TouchableOpacity>
               </View>
               <View style={{ width: '48%' }}>
-                <Text style={styles.label}>Τύπος Εδάφους</Text>
+                <Text style={styles.label}>{t('createRide.groundType')}</Text>
                 <TouchableOpacity 
                   style={styles.dropdownButton} 
-                  onPress={() => openModal('rideType', 'Τύπος Διαδρομής', RIDE_TYPES)}
+                  onPress={() => openModal('rideType', t('createRide.selectGroundType'), RIDE_TYPES)}
                 >
                    <Text numberOfLines={1} style={form.rideType ? {color:'#000', fontSize:13} : {color:'#999', fontSize:13}}>
-                     {form.rideType || "Select"}
+                     {form.rideType || t('createRide.placeHolder.select')}
                    </Text>
                    <Ionicons name="chevron-down" size={16} color="#666" />
                 </TouchableOpacity>
@@ -447,7 +450,7 @@ export default function CreateRideScreen() {
             </View>
 
             <TouchableOpacity style={styles.createButton} onPress={handleCreateRide} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createButtonText}>ΔΗΜΙΟΥΡΓΙΑ RIDE</Text>}
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createButtonText}>{t('createRide.createRide')}</Text>}
             </TouchableOpacity>
           </ScrollView>
         );
@@ -461,7 +464,7 @@ export default function CreateRideScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color="#003366" /></TouchableOpacity>
-          <Text style={styles.headerTitle}>Create New Ride</Text>
+          <Text style={styles.headerTitle}>{t('createRide.createNewRide')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -498,7 +501,7 @@ export default function CreateRideScreen() {
                 )}
               />
               <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.closeButtonText}>Κλείσιμο</Text>
+                <Text style={styles.closeButtonText}>{t('createRide.close')}</Text>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -538,7 +541,7 @@ const styles = StyleSheet.create({
   sceneScroll: { flex: 1 },
   sceneContent: { padding: 20, paddingBottom: 60 },
   label: { marginBottom: 6, fontWeight: '600', color: '#333' },
-  input: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 15, borderWidth: 1, borderColor: '#ddd' },
+  input: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 15, borderWidth: 1, borderColor: '#ddd', color: '#666' },
   readOnlyInput: { backgroundColor: '#e9ecef', borderRadius: 10, padding: 12, marginBottom: 15, borderWidth: 1, borderColor: '#ddd' },
   
   // Dropdown Style

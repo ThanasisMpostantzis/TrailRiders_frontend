@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -27,8 +28,8 @@ export default function SettingsScreen() {
     
     const [modalVisible, setModalVisible] = useState(false);
     const [username, setUsername] = useState('Loading...');
-
-    const [currentLang, setCurrentLang] = useState('el');
+    const { t, i18n } = useTranslation();
+    const currentLang = i18n.language?.substring(0, 2) || 'el';
     const [changeLangVisible, setChangeLangVisible] = useState(false);
 
     const [pushEnabled, setPushEnabled] = useState(true);
@@ -103,37 +104,37 @@ export default function SettingsScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#003366" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Ρυθμίσεις</Text>
+                <Text style={styles.headerTitle}>{t('settings.settings')}</Text>
                 <View style={{ width: 24 }} /> 
             </View>
 
             <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 30 }}>
                 
                 {/* --- SECTION 1: ΛΟΓΑΡΙΑΣΜΟΣ --- */}
-                <Text style={styles.sectionHeader}>Λογαριασμός ({username})</Text>
+                <Text style={styles.sectionHeader}>{t('settings.accountCaps')} ({username})</Text>
                 <View style={styles.card}>
                     <SettingItem 
                         icon="person-outline" 
-                        title="Επεξεργασία Προφίλ" 
+                        title={t('settings.editProfile')} 
                         onPress={() => router.push("/modal")}
                     />
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="lock-closed-outline" 
-                        title="Αλλαγή Κωδικού" 
+                        title={t('settings.changePassword')} 
                         onPress={() => router.push("/HeaderScreens/changePassword")} 
                     />
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="trash-outline" 
-                        title="Διαγραφή Λογαριασμού" 
+                        title={t('settings.deleteAccount')} 
                         isDestructive={true}
                         onPress={handleDeleteAccount}
                     />
                 </View>
 
                 {/* --- SECTION 2: ΕΦΑΡΜΟΓΗ --- */}
-                <Text style={styles.sectionHeader}>Εφαρμογή</Text>
+                <Text style={styles.sectionHeader}>{t('settings.appCaps')}</Text>
                 <View style={styles.card}>
                     <SettingItem 
                         icon="notifications-outline" 
@@ -145,29 +146,29 @@ export default function SettingsScreen() {
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="globe-outline" 
-                        title={"Γλώσσα (" + LANGUAGE_LABELS[currentLang] + ")"} 
+                        title={t('settings.language') + " (" + LANGUAGE_LABELS[currentLang] + ")"} 
                         onPress={() => setChangeLangVisible(true)} 
                     />
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="speedometer-outline" 
-                        title="Μονάδες Μέτρησης (km)" 
+                        title={`${t('settings.measureUnits')} (km)`}
                         onPress={() => console.log("Change Units")} 
                     />
                 </View>
 
                 {/* --- SECTION 3: ΥΠΟΣΤΗΡΙΞΗ & LOGOUT --- */}
-                <Text style={styles.sectionHeader}>Άλλα</Text>
+                <Text style={styles.sectionHeader}>{t('settings.other')}</Text>
                 <View style={styles.card}>
                     <SettingItem 
                         icon="help-circle-outline" 
-                        title="Βοήθεια & Υποστήριξη" 
+                        title={t('settings.helpAndSupport')}
                         onPress={() => console.log("Help")} 
                     />
                     <View style={styles.separator} />
                     <SettingItem 
                         icon="log-out-outline" 
-                        title="Αποσύνδεση" 
+                        title={t('settings.logout')}
                         onPress={() => handleLogout()} 
                     />
                 </View>
@@ -178,11 +179,6 @@ export default function SettingsScreen() {
                     visible={changeLangVisible}
                     onClose={() => setChangeLangVisible(false)}
                     selectedLanguage={currentLang}
-                    onSelectLanguage={(langCode: any) => {
-                        setCurrentLang(langCode);
-                        // add logic για αποθήκευση στο AsyncStorage
-                        console.log("Η γλώσσα άλλαξε σε:", langCode);
-                    }}
                 />
 
             </ScrollView>
